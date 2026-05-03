@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert, Switch } from 'react-native';
 import { Picker } from '@react-native-picker/picker'; 
 import { supabase } from '../services/supabase';
+import api from '../services/api';
 
 export default function NovoContratoScreen({ navigation }: any) {
   const [form, setForm] = useState({
@@ -57,30 +58,45 @@ export default function NovoContratoScreen({ navigation }: any) {
 
   const salvarContrato = async () => {
     if (!form.nome_contratante || !form.data_evento) {
-      Alert.alert('Atenção', 'Nome da contratante e data do evento são obrigatórios');
-      return;
+        Alert.alert('Atenção', 'Nome da contratante e data do evento são obrigatórios');
+        return;
     }
 
     setLoading(true);
 
-    const { error } = await supabase
-      .from('contratos')
-      .insert({
-        ...form,
-        preco_total: parseFloat(form.preco_total) || 0,
-        cardapio_selecionado: form.cardapio_selecionado,
-        status: 'pendente'
-      });
+    try {
+        // 1. Salvar no Banco de Dados
+        const { error: supabaseError } = await supabase
+        .from('contratos')
+        .insert({
+            ...form,
+            preco_total: parseFloat(form.preco_total) || 0,
+            cardapio_selecionado: form.cardapio_selecionado,
+            status: 'pendente'
+        });
 
-    if (error) {
-      Alert.alert('Erro', error.message);
-    } else {
-      Alert.alert('Sucesso', 'Contrato salvo com sucesso!');
-      navigation.goBack();
+        if (supabaseError) {
+        Alert.alert('Erro ao salvar', supabaseError.message);
+        return;
+        }
+
+        // 2. Gerar o PDF no Backend
+        const response = await api.post('/gerar-pdf', form);
+        
+        Alert.alert(
+        '✅ Sucesso!', 
+        'Contrato salvo com sucesso!\n\nPDF gerado e pronto para download.'
+        );
+
+        navigation.goBack();   // Volta para a tela anterior
+
+    } catch (error: any) {
+        console.error(error);
+        Alert.alert('Erro', 'Ocorreu um erro ao processar o contrato.');
+    } finally {
+        setLoading(false);
     }
-
-    setLoading(false);
-  };
+    };
 
   return (
     <ScrollView style={styles.container}>
@@ -131,8 +147,17 @@ export default function NovoContratoScreen({ navigation }: any) {
         </View>
       ))}
 
-      <Button title={loading ? "Salvando..." : "Salvar Contrato"} onPress={salvarContrato} disabled={loading} />
+      <Button 
+            title={loading ? "Salvando e Gerando PDF..." : "💾 Salvar Contrato e Gerar PDF"} 
+            onPress={salvarContrato} 
+            disabled={loading} 
+        />
+
+        {/* Espaço extra no final da tela */}
+        <View style={{ height: 120 }} />
+
     </ScrollView>
+        
   );
 }
 
