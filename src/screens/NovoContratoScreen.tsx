@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert, Switch } 
 import { Picker } from '@react-native-picker/picker'; 
 import { supabase } from '../services/supabase';
 import api from '../services/api';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 
 export default function NovoContratoScreen({ navigation }: any) {
   const [form, setForm] = useState({
@@ -56,6 +58,21 @@ export default function NovoContratoScreen({ navigation }: any) {
     setForm({ ...form, preco_total: total ? total.toFixed(2) : '' });
   };
 
+  const salvarPDF = async (base64: string) => {
+  try {
+    const path = FileSystem.documentDirectory + 'contrato.pdf';
+
+    await FileSystem.writeAsStringAsync(path, base64, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    await Sharing.shareAsync(path);
+  } catch (err) {
+    console.error(err);
+    Alert.alert('Erro', 'Não foi possível abrir o PDF');
+  }
+};
+
   const salvarContrato = async () => {
     if (!form.nome_contratante || !form.data_evento) {
         Alert.alert('Atenção', 'Nome da contratante e data do evento são obrigatórios');
@@ -82,7 +99,11 @@ export default function NovoContratoScreen({ navigation }: any) {
 
         // 2. Gerar o PDF no Backend
         const response = await api.post('/gerar-pdf', form);
-        
+
+        const base64 = response.data.pdf;
+
+        await salvarPDF(base64);
+
         Alert.alert(
         '✅ Sucesso!', 
         'Contrato salvo com sucesso!\n\nPDF gerado e pronto para download.'
