@@ -6,6 +6,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import NovoContratoScreen from './src/screens/NovoContratoScreen';
 import VisualizarPDFScreen from './src/screens/VisualizarPDFScreen';
+import MeusContratosScreen from './src/screens/MeusContratosScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,7 +29,11 @@ export default function App() {
           component={NovoContratoScreen} 
           options={{ title: 'Novo Contrato' }} 
         />
-      
+        <Stack.Screen 
+          name="MeusContratos" 
+          component={MeusContratosScreen} 
+          options={{ title: 'Meus Contratos' }} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

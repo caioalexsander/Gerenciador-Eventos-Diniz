@@ -15,9 +15,9 @@ export default function HomeScreen({ navigation }: any) {
 
       <View style={styles.buttonContainer}>
         <Button 
-          title="📋 Ver Meus Contratos" 
-          onPress={() => Alert.alert('Em breve', 'Lista de contratos será criada na próxima etapa')} 
-          color="#555"
+          title="📋 Meus Contratos" 
+          onPress={() => navigation.navigate('MeusContratos')} 
+          color="#2196F3"
         />
       </View>
 
