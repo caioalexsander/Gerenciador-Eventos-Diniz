@@ -84,15 +84,17 @@ export default function NovoContratoScreen({ navigation }: any) {
 
         // 2. Gerar PDF e salvar no Storage
         const response = await api.post('/gerar-pdf', form);
-        
+                
+        // Dentro do if (response.data.success)
         if (response.data.success) {
           const pdfUrl = response.data.pdfUrl;
           
           Alert.alert(
-            '✅ Sucesso!', 
-            'Contrato gerado com sucesso!\n\nDeseja visualizar o PDF agora?',
+            '✅ Contrato Gerado com Sucesso!',
+            `Contrato gerado com sucesso!\n\nURL: ${pdfUrl.substring(0, 60)}...`,
             [
               { text: 'Ver PDF', onPress: () => abrirPDF(pdfUrl) },
+              { text: '📤 Compartilhar PDF', onPress: () => compartilharPDF(pdfUrl) },
               { text: 'Fechar', style: 'cancel' }
             ]
           );
@@ -108,7 +110,38 @@ export default function NovoContratoScreen({ navigation }: any) {
 
     // Função para abrir o PDF
     const abrirPDF = (url: string) => {
-      navigation.navigate('VisualizarPDF', { pdfUrl: url });
+      //navigation.navigate('VisualizarPDF', { pdfUrl: url });
+      Alert.alert('Em breve', 'Lista de VisualizarPDF será criada na próxima etapa')
+    };
+
+    // ==================== FUNÇÃO PARA COMPARTILHAR ====================
+    const compartilharPDF = async (url: string) => {
+      try {
+        const fileUri = await downloadPDF(url);
+        
+        if (fileUri && await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri);
+        } else {
+          Alert.alert('Link do PDF', url);
+        }
+      } catch (e) {
+        console.error(e);
+        Alert.alert('Link do PDF', url);
+      }
+    };
+
+    // ==================== FUNÇÃO PARA BAIXAR PDF ====================
+    const downloadPDF = async (url: string): Promise<string | null> => {
+      try {
+        const fileName = `contrato-${Date.now()}.pdf`;
+        const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+
+        const download = await FileSystem.downloadAsync(url, fileUri);
+        return download.uri;
+      } catch (error) {
+        console.error('Erro ao baixar PDF:', error);
+        return null;
+      }
     };
 
   return (

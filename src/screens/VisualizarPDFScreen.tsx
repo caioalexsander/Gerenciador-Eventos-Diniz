@@ -6,28 +6,28 @@ import * as Sharing from 'expo-sharing';
 export default function VisualizarPDFScreen({ route, navigation }: any) {
   const { pdfUrl } = route.params;
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  console.log('Carregando PDF:', pdfUrl); // Para debug
+  console.log('🔗 URL do PDF:', pdfUrl);
 
   const compartilharPDF = async () => {
     try {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(pdfUrl);
       } else {
-        Alert.alert('Compartilhamento não disponível');
+        Alert.alert('Não foi possível compartilhar');
       }
     } catch (e) {
-      Alert.alert('Erro ao compartilhar');
+      Alert.alert('Erro ao compartilhar', 'Tente novamente');
     }
   };
 
   return (
     <View style={styles.container}>
       {loading && (
-        <View style={styles.loadingContainer}>
+        <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#000" />
-          <Text style={{ marginTop: 10 }}>Carregando PDF...</Text>
+          <Text style={styles.loadingText}>Carregando contrato...</Text>
         </View>
       )}
 
@@ -35,32 +35,31 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
         source={{ uri: pdfUrl, cache: true }}
         style={styles.pdf}
         trustAllCerts={true}
-        onLoadComplete={() => setLoading(false)}
-        onError={(error) => {
-          console.log('PDF Error:', error);
+        onLoadComplete={(numberOfPages, path) => {
+          console.log(`PDF carregado! ${numberOfPages} páginas`);
           setLoading(false);
-          setError(true);
-          Alert.alert('Erro', 'Não foi possível carregar o PDF. Verifique sua internet.');
         }}
-        onPressLink={(uri) => console.log('Link pressionado:', uri)}
+        onError={(error) => {
+          console.log('Erro no PDF:', error);
+          setLoading(false);
+          setError('Não foi possível carregar o PDF');
+          Alert.alert('Erro', 'Falha ao carregar o PDF. Verifique sua conexão.');
+        }}
       />
 
-      <View style={styles.buttons}>
+      <View style={styles.buttonContainer}>
         <Button title="🔄 Recarregar" onPress={() => navigation.replace('VisualizarPDF', { pdfUrl })} />
-        <Button title="📤 Compartilhar PDF" onPress={compartilharPDF} color="#4CAF50" />
-        <Button title="Voltar" onPress={() => navigation.goBack()} color="#666" />
+        <Button title="📤 Compartilhar" onPress={compartilharPDF} color="#28A745" />
+        <Button title="← Voltar" onPress={() => navigation.goBack()} color="#666" />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  pdf: { 
-    flex: 1, 
-    backgroundColor: '#fff' 
-  },
-  loadingContainer: {
+  container: { flex: 1, backgroundColor: '#f8f8f8' },
+  pdf: { flex: 1, backgroundColor: '#ffffff' },
+  loadingOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -68,13 +67,14 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    zIndex: 10
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    zIndex: 999
   },
-  buttons: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-around', 
-    padding: 15,
+  loadingText: { marginTop: 15, fontSize: 16 },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 12,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#ddd'
