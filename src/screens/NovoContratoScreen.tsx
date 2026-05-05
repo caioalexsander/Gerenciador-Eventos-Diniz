@@ -58,65 +58,57 @@ export default function NovoContratoScreen({ navigation }: any) {
     setForm({ ...form, preco_total: total ? total.toFixed(2) : '' });
   };
 
-  const salvarPDF = async (base64: string) => {
-  try {
-    const path = FileSystem.documentDirectory + 'contrato.pdf';
-
-    await FileSystem.writeAsStringAsync(path, base64, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-
-    await Sharing.shareAsync(path);
-  } catch (err) {
-    console.error(err);
-    Alert.alert('Erro', 'Não foi possível abrir o PDF');
-  }
-};
-
   const salvarContrato = async () => {
-    if (!form.nome_contratante || !form.data_evento) {
+      if (!form.nome_contratante || !form.data_evento) {
         Alert.alert('Atenção', 'Nome da contratante e data do evento são obrigatórios');
         return;
-    }
+      }
 
-    setLoading(true);
+      setLoading(true);
 
-    try {
-        // 1. Salvar no Banco de Dados
+      try {
+        // 1. Salvar no Banco
         const { error: supabaseError } = await supabase
-        .from('contratos')
-        .insert({
+          .from('contratos')
+          .insert({
             ...form,
             preco_total: parseFloat(form.preco_total) || 0,
             cardapio_selecionado: form.cardapio_selecionado,
             status: 'pendente'
-        });
+          });
 
         if (supabaseError) {
-        Alert.alert('Erro ao salvar', supabaseError.message);
-        return;
+          Alert.alert('Erro ao salvar', supabaseError.message);
+          return;
         }
 
-        // 2. Gerar o PDF no Backend
+        // 2. Gerar PDF e salvar no Storage
         const response = await api.post('/gerar-pdf', form);
+        
+        if (response.data.success) {
+          const pdfUrl = response.data.pdfUrl;
+          
+          Alert.alert(
+            '✅ Sucesso!', 
+            'Contrato gerado com sucesso!\n\nDeseja visualizar o PDF agora?',
+            [
+              { text: 'Ver PDF', onPress: () => abrirPDF(pdfUrl) },
+              { text: 'Fechar', style: 'cancel' }
+            ]
+          );
+        }
 
-        const base64 = response.data.pdf;
-
-        await salvarPDF(base64);
-
-        Alert.alert(
-        '✅ Sucesso!', 
-        'Contrato salvo com sucesso!\n\nPDF gerado e pronto para download.'
-        );
-
-        navigation.goBack();   // Volta para a tela anterior
-
-    } catch (error: any) {
+      } catch (error: any) {
         console.error(error);
-        Alert.alert('Erro', 'Ocorreu um erro ao processar o contrato.');
-    } finally {
+        Alert.alert('Erro', 'Ocorreu um erro ao gerar o PDF.');
+      } finally {
         setLoading(false);
-    }
+      }
+    };
+
+    // Função para abrir o PDF
+    const abrirPDF = (url: string) => {
+      navigation.navigate('VisualizarPDF', { pdfUrl: url });
     };
 
   return (
