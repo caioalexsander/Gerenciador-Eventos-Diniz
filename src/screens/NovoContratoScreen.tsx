@@ -34,7 +34,7 @@ export default function NovoContratoScreen({ navigation }: any) {
 
   // ✅ ALTERADO para usar textos base
   const clausulasBase: Record<string, string> = {
-    'Opção Personalizada': 'Como pagamento pela presente prestação de serviços, a CONTRATADA recebeu valor de R$ {{preco_total}} do pacote promocional, via link pagamento na data de hoje valor integral, com autorização da Proprietária Priscila Diniz, segue contas para depósito e pix: CPF 07092990602 ou pagamento em dinheiro mediante entrega de recibo. PACOTE COM VALOR PROMOCIONAL PARA PAGAMENTO À VISTA autorizado pela proprietária Priscila Diniz a ser pago da forma acima descrita.',
+    'Opção Personalizada': '6. Como pagamento pela presente prestação de serviços, a CONTRATADA recebeu valor de R$ {{preco_total}} do pacote promocional, via link pagamento na data de hoje valor integral, com autorização da Proprietária Priscila Diniz, segue contas para depósito e pix: CPF 07092990602 ou pagamento em dinheiro mediante entrega de recibo. PACOTE COM VALOR PROMOCIONAL PARA PAGAMENTO À VISTA autorizado pela proprietária Priscila Diniz a ser pago da forma acima descrita.',
     'Opção 1 - 50% sinal': 'O contratante pagará 50% no ato da assinatura e 50% até a data do evento.',
     'Opção 2 - 30% sinal': 'O contratante pagará 30% no ato da assinatura e o restante até a data do evento.',
     'Opção 3 - Pagamento integral': 'O pagamento será feito integralmente no ato da contratação.'
