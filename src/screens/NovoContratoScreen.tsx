@@ -21,6 +21,7 @@ export default function NovoContratoScreen({ navigation }: any) {
     preco_por_convidado: '',
     preco_total: '',
     clausula_pagamento: 'Opção 1',
+    clausula_texto: '', // ✅ ADICIONADO
     assinatura: 'Manual',
     cardapio_selecionado: [] as string[],
     observacoes: '',
@@ -30,13 +31,24 @@ export default function NovoContratoScreen({ navigation }: any) {
 
   // Opções
   const tiposEvento = ['Tipo 1', 'Tipo 2', 'Tipo 3', 'Casamento', 'Aniversário', 'Corporativo'];
-  const clausulas = ['Opção 1 - 50% sinal', 'Opção 2 - 30% sinal', 'Opção 3 - Pagamento integral'];
+
+  // ✅ ALTERADO para usar textos base
+  const clausulasBase: Record<string, string> = {
+    'Opção Personalizada': 'Como pagamento pela presente prestação de serviços, a CONTRATADA recebeu valor de R$ {{preco_total}} do pacote promocional, via link pagamento na data de hoje valor integral, com autorização da Proprietária Priscila Diniz, segue contas para depósito e pix: CPF 07092990602 ou pagamento em dinheiro mediante entrega de recibo. PACOTE COM VALOR PROMOCIONAL PARA PAGAMENTO À VISTA autorizado pela proprietária Priscila Diniz a ser pago da forma acima descrita.',
+    'Opção 1 - 50% sinal': 'O contratante pagará 50% no ato da assinatura e 50% até a data do evento.',
+    'Opção 2 - 30% sinal': 'O contratante pagará 30% no ato da assinatura e o restante até a data do evento.',
+    'Opção 3 - Pagamento integral': 'O pagamento será feito integralmente no ato da contratação.'
+  };
+
+  const gerarClausula = (texto: string) => {
+    return texto.replace('{{preco_total}}', form.preco_total || '0,00');
+  };
+
   const assinaturas = ['Manual', 'Digital'];
 
   const itensCardapio = [
     'Arroz Branco', 'Arroz com Ervas', 'Feijão', 'Carne Assada', 'Frango Grelhado', 
     'Salada Verde', 'Batata Frita', 'Macarrão', 'Lasanha', 'Pudim', 'Bolo', 
-    // Adicione mais aqui...
   ];
 
   const toggleItem = (item: string) => {
@@ -53,21 +65,23 @@ export default function NovoContratoScreen({ navigation }: any) {
     }
   };
 
-  const calcularTotal = () => {
-    const total = Number(form.num_convidados) * Number(form.preco_por_convidado);
-    setForm({ ...form, preco_total: total ? total.toFixed(2) : '' });
-  };
-
   const salvarContrato = async () => {
-      if (!form.nome_contratante || !form.data_evento) {
-        Alert.alert('Atenção', 'Nome da contratante e data do evento são obrigatórios');
+      if (
+          !form.nome_contratante ||
+          !form.cpf_contratante ||
+          !form.data_evento ||
+          !form.local_evento ||
+          !form.num_convidados ||
+          !form.preco_por_convidado ||
+          !form.preco_total
+        ) {
+        Alert.alert('Atenção', 'Preencha todos os campos obrigatórios');
         return;
       }
 
       setLoading(true);
 
       try {
-        // 1. Salvar no Banco
         const { error: supabaseError } = await supabase
           .from('contratos')
           .insert({
@@ -82,10 +96,8 @@ export default function NovoContratoScreen({ navigation }: any) {
           return;
         }
 
-        // 2. Gerar PDF e salvar no Storage
         const response = await api.post('/gerar-pdf', form);
                 
-        // Dentro do if (response.data.success)
         if (response.data.success) {
           const pdfUrl = response.data.pdfUrl;
           
@@ -108,41 +120,37 @@ export default function NovoContratoScreen({ navigation }: any) {
       }
     };
 
-    // Função para abrir o PDF
-    const abrirPDF = (url: string) => {
-      //navigation.navigate('VisualizarPDF', { pdfUrl: url });
-      Alert.alert('Em breve', 'Lista de VisualizarPDF será criada na próxima etapa')
-    };
+  const abrirPDF = (url: string) => {
+    Alert.alert('Em breve', 'Lista de VisualizarPDF será criada na próxima etapa')
+  };
 
-    // ==================== FUNÇÃO PARA COMPARTILHAR ====================
-    const compartilharPDF = async (url: string) => {
-      try {
-        const fileUri = await downloadPDF(url);
-        
-        if (fileUri && await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri);
-        } else {
-          Alert.alert('Link do PDF', url);
-        }
-      } catch (e) {
-        console.error(e);
+  const compartilharPDF = async (url: string) => {
+    try {
+      const fileUri = await downloadPDF(url);
+      
+      if (fileUri && await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri);
+      } else {
         Alert.alert('Link do PDF', url);
       }
-    };
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Link do PDF', url);
+    }
+  };
 
-    // ==================== FUNÇÃO PARA BAIXAR PDF ====================
-    const downloadPDF = async (url: string): Promise<string | null> => {
-      try {
-        const fileName = `contrato-${Date.now()}.pdf`;
-        const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+  const downloadPDF = async (url: string): Promise<string | null> => {
+    try {
+      const fileName = `contrato-${Date.now()}.pdf`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
 
-        const download = await FileSystem.downloadAsync(url, fileUri);
-        return download.uri;
-      } catch (error) {
-        console.error('Erro ao baixar PDF:', error);
-        return null;
-      }
-    };
+      const download = await FileSystem.downloadAsync(url, fileUri);
+      return download.uri;
+    } catch (error) {
+      console.error('Erro ao baixar PDF:', error);
+      return null;
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -165,16 +173,34 @@ export default function NovoContratoScreen({ navigation }: any) {
         {tiposEvento.map(t => <Picker.Item key={t} label={t} value={t} />)}
       </Picker>
 
-      <TextInput style={styles.input} placeholder="Número de Convidados" value={form.num_convidados} onChangeText={(t) => setForm({...form, num_convidados: t})} keyboardType="numeric" onBlur={calcularTotal} />
+      <TextInput style={styles.input} placeholder="Número de Convidados" value={form.num_convidados} onChangeText={(t) => setForm({...form, num_convidados: t})} keyboardType="numeric" />
 
-      <TextInput style={styles.input} placeholder="Preço por Convidado (R$)" value={form.preco_por_convidado} onChangeText={(t) => setForm({...form, preco_por_convidado: t})} keyboardType="numeric" onBlur={calcularTotal} />
+      <TextInput style={styles.input} placeholder="Preço por Convidado (R$)" value={form.preco_por_convidado} onChangeText={(t) => setForm({...form, preco_por_convidado: t})} keyboardType="numeric" />
 
-      <TextInput style={styles.input} placeholder="Preço Total" value={form.preco_total} editable={false} />
+      <TextInput style={styles.input} placeholder="Preço Total" value={form.preco_total} onChangeText={(t) => setForm({...form, preco_total: t})} />
 
       <Text style={styles.label}>Cláusula de Pagamento</Text>
-      <Picker selectedValue={form.clausula_pagamento} onValueChange={(v) => setForm({...form, clausula_pagamento: v})}>
-        {clausulas.map(c => <Picker.Item key={c} label={c} value={c} />)}
+
+      <Picker
+        selectedValue={form.clausula_pagamento}
+        onValueChange={(v) => setForm({
+          ...form,
+          clausula_pagamento: v,
+          clausula_texto: gerarClausula(clausulasBase[v] || '')
+        })}
+      >
+        {Object.keys(clausulasBase).map(c => (
+          <Picker.Item key={c} label={c} value={c} />
+        ))}
       </Picker>
+
+      <TextInput
+        style={[styles.input, { height: 100 }]}
+        multiline
+        placeholder="Texto da cláusula"
+        value={form.clausula_texto}
+        onChangeText={(t) => setForm({ ...form, clausula_texto: t })}
+      />
 
       <Text style={styles.label}>Tipo de Assinatura</Text>
       <Picker selectedValue={form.assinatura} onValueChange={(v) => setForm({...form, assinatura: v})}>
@@ -194,16 +220,13 @@ export default function NovoContratoScreen({ navigation }: any) {
       ))}
 
       <Button 
-            title={loading ? "Salvando e Gerando PDF..." : "💾 Salvar Contrato e Gerar PDF"} 
-            onPress={salvarContrato} 
-            disabled={loading} 
-        />
+        title={loading ? "Salvando e Gerando PDF..." : "💾 Salvar Contrato e Gerar PDF"} 
+        onPress={salvarContrato} 
+        disabled={loading} 
+      />
 
-        {/* Espaço extra no final da tela */}
-        <View style={{ height: 120 }} />
-
+      <View style={{ height: 120 }} />
     </ScrollView>
-        
   );
 }
 
