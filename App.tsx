@@ -7,6 +7,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import NovoContratoScreen from './src/screens/NovoContratoScreen';
 import VisualizarPDFScreen from './src/screens/VisualizarPDFScreen';
 import MeusContratosScreen from './src/screens/MeusContratosScreen';
+import CardapioScreen from './src/screens/CardapioScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +34,16 @@ export default function App() {
           name="MeusContratos" 
           component={MeusContratosScreen} 
           options={{ title: 'Meus Contratos' }} 
+        />
+        <Stack.Screen 
+          name="VisualizarPDF" 
+          component={VisualizarPDFScreen} 
+          options={{ title: 'Visualizar Contrato' }} 
+        />
+        <Stack.Screen 
+          name="Cardapio" 
+          component={CardapioScreen} 
+          options={{ title: 'Gerenciar Cardápio' }} 
         />
       </Stack.Navigator>
     </NavigationContainer>

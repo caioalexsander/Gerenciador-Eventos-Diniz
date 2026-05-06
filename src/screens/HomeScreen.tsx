@@ -21,6 +21,14 @@ export default function HomeScreen({ navigation }: any) {
         />
       </View>
 
+      <View style={styles.buttonContainer}>
+      <Button 
+        title="🍽️ Gerenciar Cardápio"
+        onPress={() => navigation.navigate('Cardapio')} 
+        color="#2196F3"
+      />
+    </View>
+
       <Button 
         title="Sair" 
         onPress={() => navigation.replace('Login')} 

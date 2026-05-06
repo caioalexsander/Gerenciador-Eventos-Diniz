@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert, Switch } from 'react-native';
 import { Picker } from '@react-native-picker/picker'; 
 import { supabase } from '../services/supabase';
@@ -46,22 +46,23 @@ export default function NovoContratoScreen({ navigation }: any) {
 
   const assinaturas = ['Manual', 'Digital'];
 
-  const itensCardapio = [
-    'Arroz Branco', 'Arroz com Ervas', 'Feijão', 'Carne Assada', 'Frango Grelhado', 
-    'Salada Verde', 'Batata Frita', 'Macarrão', 'Lasanha', 'Pudim', 'Bolo', 
-  ];
+  const [itensCardapio, setItensCardapio] = useState<any[]>([]);
+  const [cardapioSelecionado, setCardapioSelecionado] = useState<string[]>([]);
 
-  const toggleItem = (item: string) => {
-    if (form.cardapio_selecionado.includes(item)) {
-      setForm({
-        ...form,
-        cardapio_selecionado: form.cardapio_selecionado.filter(i => i !== item)
-      });
+  // Carregar cardápio do banco
+  useEffect(() => {
+  const carregarCardapio = async () => {
+  const { data, error } = await supabase.from('cardapio').select('*').order('nome');
+      if (!error) setItensCardapio(data || []);
+    };
+    carregarCardapio();
+  }, []);
+
+  const toggleItem = (nome: string) => {
+    if (cardapioSelecionado.includes(nome)) {
+      setCardapioSelecionado(cardapioSelecionado.filter(item => item !== nome));
     } else {
-      setForm({
-        ...form,
-        cardapio_selecionado: [...form.cardapio_selecionado, item]
-      });
+      setCardapioSelecionado([...cardapioSelecionado, nome]);
     }
   };
 
@@ -82,22 +83,27 @@ export default function NovoContratoScreen({ navigation }: any) {
       setLoading(true);
 
       try {
-        const { error: supabaseError } = await supabase
+        const { data: contratoSalvo, error: supabaseError } = await supabase
           .from('contratos')
           .insert({
             ...form,
             preco_total: parseFloat(form.preco_total) || 0,
             cardapio_selecionado: form.cardapio_selecionado,
             status: 'pendente'
-          });
-
+          })
+          .select()
+          .single();
+          
         if (supabaseError) {
           Alert.alert('Erro ao salvar', supabaseError.message);
           return;
         }
 
-        const response = await api.post('/gerar-pdf', form);
-                
+        const response = await api.post('/gerar-pdf', { 
+            ...form, 
+            id: contratoSalvo.id 
+          });
+
         if (response.data.success) {
           const pdfUrl = response.data.pdfUrl;
           
@@ -120,8 +126,12 @@ export default function NovoContratoScreen({ navigation }: any) {
       }
     };
 
-  const abrirPDF = (url: string) => {
-    Alert.alert('Em breve', 'Lista de VisualizarPDF será criada na próxima etapa')
+  const abrirPDF = (pdfUrl: string) => {
+      if (pdfUrl) {
+        navigation.navigate('VisualizarPDF', { pdfUrl });
+      } else {
+        Alert.alert('Aviso', 'Este contrato ainda não possui PDF gerado.');
+      }
   };
 
   const compartilharPDF = async (url: string) => {
@@ -208,16 +218,24 @@ export default function NovoContratoScreen({ navigation }: any) {
       </Picker>
 
       <Text style={styles.label}>Cardápio (Selecione os itens)</Text>
-        {itensCardapio.map(item => (
-        <View key={item} style={styles.checkboxContainer}>
-          <Switch
-            value={form.cardapio_selecionado.includes(item)}
-            onValueChange={() => toggleItem(item)}
-            trackColor={{ false: "#ccc", true: "#4CAF50" }}
-          />
-          <Text style={styles.checkboxLabel}>{item}</Text>
-        </View>
-      ))}
+      {itensCardapio.length === 0 ? (
+        <Text>Carregando cardápio... ou nenhum item cadastrado.</Text>
+      ) : (
+        itensCardapio.map(item => (
+          <View key={item.id} style={styles.checkboxContainer}>
+            <Switch
+              value={cardapioSelecionado.includes(item.nome)}
+              onValueChange={() => toggleItem(item.nome)}
+              trackColor={{ false: "#ccc", true: "#4CAF50" }}
+            />
+            <View style={{ marginLeft: 10, flex: 1 }}>
+              <Text style={styles.checkboxLabel}>{item.nome}</Text>
+              {item.preco && <Text style={{ fontSize: 13, color: '#28A745' }}>R$ {item.preco}</Text>}
+              {item.descricao && <Text style={{ fontSize: 12, color: '#666' }}>{item.descricao}</Text>}
+            </View>
+          </View>
+        ))
+      )}
 
       <Button 
         title={loading ? "Salvando e Gerando PDF..." : "💾 Salvar Contrato e Gerar PDF"} 
