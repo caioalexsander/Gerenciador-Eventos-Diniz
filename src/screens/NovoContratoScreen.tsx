@@ -88,7 +88,7 @@ export default function NovoContratoScreen({ navigation }: any) {
           .insert({
             ...form,
             preco_total: parseFloat(form.preco_total) || 0,
-            cardapio_selecionado: form.cardapio_selecionado,
+            cardapio_selecionado: cardapioSelecionado,
             status: 'pendente'
           })
           .select()
@@ -101,7 +101,8 @@ export default function NovoContratoScreen({ navigation }: any) {
 
         const response = await api.post('/gerar-pdf', { 
             ...form, 
-            id: contratoSalvo.id 
+            id: contratoSalvo.id ,
+            cardapio_selecionado: cardapioSelecionado,
           });
 
         if (response.data.success) {
