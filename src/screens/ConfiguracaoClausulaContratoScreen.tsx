@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { supabase } from '../services/supabase';
 
-export default function MeusContratosScreen({ navigation }: any) {
+export default function ConfiguracaoClausulaContratoScreen({ navigation }: any) {
   const [contratos, setContratos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   

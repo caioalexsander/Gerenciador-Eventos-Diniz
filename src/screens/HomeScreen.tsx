@@ -39,9 +39,9 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={styles.cardText}>Cardápio</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.card} onPress={() => Alert.alert('Em breve')}>
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ConfiguracaoClausulaContratoScreen')}>
             <Text style={styles.icon}>📊</Text>
-            <Text style={styles.cardText}>Relatórios</Text>
+            <Text style={styles.cardText}>Clausula Contrato</Text>
           </TouchableOpacity>
 
         </View>
