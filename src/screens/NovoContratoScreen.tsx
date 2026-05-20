@@ -16,7 +16,7 @@ export default function NovoContratoScreen({ navigation }: any) {
     hora_fim: '',
     duracao: '',
     local_evento: '',
-    tipo_evento: 'Casamento',
+    tipo_evento: '',
     num_convidados: '',
     preco_por_convidado: '',
     preco_total: '',
@@ -27,18 +27,71 @@ export default function NovoContratoScreen({ navigation }: any) {
     observacoes: '',
   });
 
-  const [loading, setLoading] = useState(false);
-
   // Opções
-  const tiposEvento = ['Tipo 1', 'Tipo 2', 'Tipo 3', 'Casamento', 'Aniversário', 'Corporativo'];
+  const [loading, setLoading] = useState(false);  
+  const [tiposEvento, setTiposEvento] = useState<string[]>([]);
+  const [clausulasBase, setClausulasBase] = useState<Record<string, string>>({});
+  const [loadingClausulas, setLoadingClausulas] = useState(true);
 
-  // ✅ ALTERADO para usar textos base
-  const clausulasBase: Record<string, string> = {
-    'Opção Personalizada': '6. Como pagamento pela presente prestação de serviços, a CONTRATADA recebeu valor de R$ {{preco_total}} do pacote promocional, via link pagamento na data de hoje valor integral, com autorização da Proprietária Priscila Diniz, segue contas para depósito e pix: CPF 07092990602 ou pagamento em dinheiro mediante entrega de recibo. PACOTE COM VALOR PROMOCIONAL PARA PAGAMENTO À VISTA autorizado pela proprietária Priscila Diniz a ser pago da forma acima descrita.',
-    'Opção 1 - 50% sinal': 'O contratante pagará 50% no ato da assinatura e 50% até a data do evento.',
-    'Opção 2 - 30% sinal': 'O contratante pagará 30% no ato da assinatura e o restante até a data do evento.',
-    'Opção 3 - Pagamento integral': 'O pagamento será feito integralmente no ato da contratação.'
-  };
+  // ==================== CARREGAR CLÁUSULAS E TIPOS DE EVENTO ====================
+    useEffect(() => {
+      const carregarDados = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('modelo_contrato')
+            .select('titulo, texto_completo, tipo_de_clausula')
+            .or('tipo_de_clausula.eq.C_P,tipo_de_clausula.eq.C_T')   // Busca os dois tipos
+            .order('titulo', { ascending: true });
+
+          if (error) {
+            console.error('Erro ao carregar dados:', error);
+            Alert.alert('Erro', 'Não foi possível carregar os dados.');
+            return;
+          }
+
+          // Separar Cláusulas de Pagamento (C_P)
+          const clausulasMap: Record<string, string> = {};
+          const tiposEventoList: string[] = [];
+
+          data?.forEach(item => {
+            if (item.tipo_de_clausula === 'C_P' && item.titulo && item.texto_completo) {
+              clausulasMap[item.titulo] = item.texto_completo;
+            }
+            if (item.tipo_de_clausula === 'C_T' && item.titulo) {
+              tiposEventoList.push(item.titulo);
+            }
+          });
+
+          setClausulasBase(clausulasMap);
+          setTiposEvento(tiposEventoList);
+
+          // Seleciona automaticamente a primeira cláusula de pagamento
+          if (Object.keys(clausulasMap).length > 0) {
+            const primeiraClausula = Object.keys(clausulasMap)[0];
+            setForm(prev => ({
+              ...prev,
+              clausula_pagamento: primeiraClausula,
+              clausula_texto: gerarClausula(clausulasMap[primeiraClausula])
+            }));
+          }
+
+          // Seleciona automaticamente o primeiro tipo de evento
+          if (tiposEventoList.length > 0) {
+            setForm(prev => ({
+              ...prev,
+              tipo_evento: tiposEventoList[0]
+            }));
+          }
+
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setLoadingClausulas(false);
+        }
+      };
+
+      carregarDados();
+    }, []);
 
   const gerarClausula = (texto: string) => {
     return texto.replace('{{preco_total}}', form.preco_total || '0,00');
@@ -274,7 +327,7 @@ export default function NovoContratoScreen({ navigation }: any) {
 
   //trabanho caixa ediçao clausula
   const [alturaClausula, setAlturaClausula] = useState(100);
-
+  
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Novo Contrato</Text>
@@ -301,27 +354,28 @@ export default function NovoContratoScreen({ navigation }: any) {
       <Text style={styles.label}>Cláusula de Pagamento</Text>
 
       <Picker
-        selectedValue={form.clausula_pagamento}
-        onValueChange={(v) => {
-        const novoTexto = gerarClausula(clausulasBase[v] || '');
+          selectedValue={form.clausula_pagamento}
+          enabled={!loadingClausulas}
+          onValueChange={(nomeSelecionado) => {
+            const textoBase = clausulasBase[nomeSelecionado] || '';
+            const novoTexto = gerarClausula(textoBase);
 
-          setForm({
-            ...form,
-            clausula_pagamento: v,
-            clausula_texto: novoTexto
-          });
+            setForm({
+              ...form,
+              clausula_pagamento: nomeSelecionado,
+              clausula_texto: novoTexto
+            });
 
-          // calcula altura aproximada automática
-          const linhas = Math.ceil(novoTexto.length / 35);
-          setAlturaClausula(Math.max(100, linhas * 24));
-        }}
-              >
-                {Object.keys(clausulasBase).map(c => (
-                  <Picker.Item key={c} label={c} value={c} />
-                ))}
-              </Picker>
+            const linhas = Math.ceil(novoTexto.length / 35);
+            setAlturaClausula(Math.max(100, linhas * 24));
+          }}
+        >
+          {Object.keys(clausulasBase).map(nome => (
+            <Picker.Item key={nome} label={nome} value={nome} />
+          ))}
+        </Picker>
 
-              <TextInput
+        <TextInput
           style={[
             styles.input,
             {
@@ -331,13 +385,13 @@ export default function NovoContratoScreen({ navigation }: any) {
             }
           ]}
           multiline
-          placeholder="Texto da cláusula"
+          placeholder="Texto da cláusula (pode editar)"
           value={form.clausula_texto}
           onChangeText={(t) => setForm({ ...form, clausula_texto: t })}
           onContentSizeChange={(e) => {
             setAlturaClausula(e.nativeEvent.contentSize.height);
           }}
-              />
+        />
 
       <Text style={styles.label}>Tipo de Assinatura</Text>
       <Picker selectedValue={form.assinatura} onValueChange={(v) => setForm({...form, assinatura: v})}>
@@ -345,8 +399,14 @@ export default function NovoContratoScreen({ navigation }: any) {
       </Picker>   
       
       <Text style={styles.label}>Tipo de Evento</Text>
-      <Picker selectedValue={form.tipo_evento} onValueChange={(v) => setForm({...form, tipo_evento: v})}>
-        {tiposEvento.map(t => <Picker.Item key={t} label={t} value={t} />)}
+      <Picker 
+        selectedValue={form.tipo_evento}
+        enabled={!loadingClausulas}
+        onValueChange={(v) => setForm({...form, tipo_evento: v})}
+      >
+        {tiposEvento.map(t => (
+          <Picker.Item key={t} label={t} value={t} />
+        ))}
       </Picker>
 
       <Text style={styles.label}>Cardápio (Selecione os itens)</Text>

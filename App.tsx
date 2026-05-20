@@ -8,6 +8,7 @@ import NovoContratoScreen from './src/screens/NovoContratoScreen';
 import VisualizarPDFScreen from './src/screens/VisualizarPDFScreen';
 import MeusContratosScreen from './src/screens/MeusContratosScreen';
 import CardapioScreen from './src/screens/CardapioScreen';
+import ConfiguracaoClausulaContratoScreen from './src/screens/ConfiguracaoClausulaContratoScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -44,6 +45,11 @@ export default function App() {
           name="Cardapio" 
           component={CardapioScreen} 
           options={{ title: 'Gerenciar Cardápio' }} 
+        />
+        <Stack.Screen 
+          name="ConfiguracaoClausulaContrato" 
+          component={ConfiguracaoClausulaContratoScreen} 
+          options={{ title: 'Configuração de Cláusulas' }} 
         />
       </Stack.Navigator>
     </NavigationContainer>

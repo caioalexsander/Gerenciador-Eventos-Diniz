@@ -1,102 +1,288 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  TextInput,
+  ScrollView,        // ← Adicionado
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../services/supabase';
 
-export default function ConfiguracaoClausulaContratoScreen({ navigation }: any) {
-  const [contratos, setContratos] = useState<any[]>([]);
+interface ModeloContrato {
+  id: number;
+  titulo: string;
+  texto_completo: string;
+}
+
+const ConfiguracaoClausulaContratoScreen: React.FC = () => {
+  const [modelos, setModelos] = useState<ModeloContrato[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const carregarContratos = async () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<ModeloContrato | null>(null);
+
+  const [titulo, setTitulo] = useState('');
+  const [textoCompleto, setTextoCompleto] = useState('');
+  const [textHeight, setTextHeight] = useState(160); // Altura inicial
+
+  const carregarModelos = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('contratos')
+      .from('modelo_contrato')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('titulo', { ascending: true });
 
     if (error) {
-      Alert.alert('Erro', error.message);
+      Alert.alert('Erro', 'Não foi possível carregar as cláusulas.');
+      console.error(error);
     } else {
-      setContratos(data || []);
+      setModelos(data || []);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    carregarContratos();
+    carregarModelos();
   }, []);
 
-  const verPDF = (pdfUrl: string) => {
-    if (pdfUrl) {
-      navigation.navigate('VisualizarPDF', { pdfUrl });
-    } else {
-      Alert.alert('Aviso', 'Este contrato ainda não possui PDF gerado.');
+  const salvarClausula = async () => {
+    if (!titulo.trim() || !textoCompleto.trim()) {
+      Alert.alert('Atenção', 'Título e texto são obrigatórios!');
+      return;
     }
+
+    if (editingItem) {
+      const { error } = await supabase
+        .from('modelo_contrato')
+        .update({ titulo, texto_completo: textoCompleto })
+        .eq('id', editingItem.id);
+
+      if (error) Alert.alert('Erro', 'Não foi possível atualizar.');
+      else Alert.alert('Sucesso', 'Cláusula atualizada!');
+    } else {
+      const { error } = await supabase
+        .from('modelo_contrato')
+        .insert([{ titulo, texto_completo: textoCompleto }]);
+
+      if (error) Alert.alert('Erro', 'Não foi possível criar.');
+      else Alert.alert('Sucesso', 'Cláusula criada!');
+    }
+
+    setModalVisible(false);
+    setEditingItem(null);
+    setTitulo('');
+    setTextoCompleto('');
+    setTextHeight(160);
+    carregarModelos();
   };
 
-  const renderContrato = ({ item }: any) => (
-    <TouchableOpacity style={styles.card} onPress={() => verPDF(item.pdf_url)}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.nome}>{item.nome_contratante}</Text>
-        <Text style={styles.data}>{item.data_evento}</Text>
-      </View>
-            
-      <Text style={styles.info}>Local Evento: {item.local_evento}</Text>
-      <Text style={styles.info}>CPF Contratantes: {item.cpf_contratante}</Text>
-      <Text style={styles.info}>Valor Total Do Evento: R$ {item.preco_total}</Text>
-      
-      <View style={styles.footer}>
-        <Text style={styles.status}>Status: {item.status || 'pendente'}</Text>
-        {item.pdf_url ? (
-          <Text style={styles.pdfDisponivel}>📄 PDF Disponível</Text>
-        ) : (
-          <Text style={styles.pdfIndisponivel}>PDF não gerado</Text>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+  const editarClausula = (item: ModeloContrato) => {
+    setEditingItem(item);
+    setTitulo(item.titulo);
+    setTextoCompleto(item.texto_completo);
+    setTextHeight(160); // Reset altura ao editar
+    setModalVisible(true);
+  };
+
+  const excluirClausula = (id: number) => {
+    Alert.alert('Confirmar', 'Deseja excluir esta cláusula?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          const { error } = await supabase.from('modelo_contrato').delete().eq('id', id);
+          if (error) Alert.alert('Erro', 'Não foi possível excluir.');
+          else carregarModelos();
+        },
+      },
+    ]);
+  };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.btnAtualizar} onPress={carregarContratos}>
-        <Text style={styles.btnText}>🔄 Atualizar Lista</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Configuração de Cláusulas</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => {
+            setEditingItem(null);
+            setTitulo('');
+            setTextoCompleto('');
+            setTextHeight(160);
+            setModalVisible(true);
+          }}
+        >
+          <Text style={styles.addButtonText}>+ Nova</Text>
+        </TouchableOpacity>
+      </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#000" style={{ marginTop: 50 }} />
-      ) : contratos.length === 0 ? (
-        <Text style={styles.vazio}>Nenhum contrato encontrado</Text>
+        <ActivityIndicator size="large" color="#0066cc" style={{ marginTop: 50 }} />
       ) : (
         <FlatList
-          data={contratos}
-          keyExtractor={(item) => item.id}
-          renderItem={renderContrato}
-          contentContainerStyle={styles.list}
+          data={modelos}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>{item.titulo}</Text>
+              <Text style={styles.cardText} numberOfLines={4}>
+                {item.texto_completo}
+              </Text>
+
+              <View style={styles.actions}>
+                <TouchableOpacity style={styles.actionButton} onPress={() => editarClausula(item)}>
+                  <Text style={styles.editText}>✏️ Editar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton} onPress={() => excluirClausula(item.id)}>
+                  <Text style={styles.deleteText}>🗑 Excluir</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>Nenhuma cláusula cadastrada ainda.</Text>
+          }
         />
       )}
-    </View>
-  );
-}
 
+      {/* ==================== MODAL ==================== */}
+      {modalVisible && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ScrollView 
+              showsVerticalScrollIndicator={true}
+              contentContainerStyle={styles.scrollContent}
+            >
+              <Text style={styles.modalTitle}>
+                {editingItem ? 'Editar Cláusula' : 'Nova Cláusula'}
+              </Text>
+
+              <Text style={styles.label}>Título da Cláusula</Text>
+              <TextInput
+                style={styles.input}
+                value={titulo}
+                onChangeText={setTitulo}
+                placeholder="Ex: Prazo de Entrega"
+              />
+
+              <Text style={styles.label}>Texto Completo</Text>
+              <TextInput
+                style={[styles.input, styles.textArea, { height: textHeight }]}
+                value={textoCompleto}
+                onChangeText={setTextoCompleto}
+                placeholder="Digite o texto completo da cláusula..."
+                multiline
+                textAlignVertical="top"
+                onContentSizeChange={(event) => {
+                  setTextHeight(Math.max(160, event.nativeEvent.contentSize.height + 20));
+                }}
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.button, styles.cancelButton]}
+                  onPress={() => {
+                    setModalVisible(false);
+                    setEditingItem(null);
+                    setTextHeight(160);
+                  }}
+                >
+                  <Text style={styles.buttonText}>Cancelar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.button, styles.saveButton]}
+                  onPress={salvarClausula}
+                >
+                  <Text style={styles.buttonText}>Salvar</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      )}
+    </SafeAreaView>
+  );
+};
+
+export default ConfiguracaoClausulaContratoScreen;
+
+// ==================== STYLES ====================
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9f9f9', padding: 15 },
-  btnAtualizar: { backgroundColor: '#2196F3', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 15 },
-  btnText: { color: '#fff', fontWeight: 'bold' },
-  list: { paddingBottom: 20 },
+  container: { flex: 1, backgroundColor: '#f4f4f4' },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#0066cc',
+  },
+  title: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
+  addButton: {
+    backgroundColor: '#0052a3',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  addButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+
   card: {
     backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#eee'
+    margin: 12,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 3,
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  nome: { fontSize: 18, fontWeight: 'bold', flex: 1 },
-  data: { fontSize: 16, color: '#666' },
-  info: { fontSize: 15, marginVertical: 2, color: '#444' },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  status: { fontSize: 15, color: '#28A745', fontWeight: 'bold' },
-  pdfDisponivel: { color: '#2196F3', fontWeight: 'bold' },
-  pdfIndisponivel: { color: '#FF9800' },
-  vazio: { textAlign: 'center', marginTop: 50, fontSize: 18, color: '#666' }
+  cardTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
+  cardText: { fontSize: 15, color: '#555', lineHeight: 20 },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, gap: 16 },
+  actionButton: { padding: 6 },
+  editText: { color: '#0066cc', fontWeight: '600' },
+  deleteText: { color: '#cc0000', fontWeight: '600' },
+  emptyText: { textAlign: 'center', marginTop: 50, color: '#888', fontSize: 16 },
+
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    width: '90%',
+    borderRadius: 12,
+    padding: 20,
+    maxHeight: '85%',
+  },
+
+  scrollContent: {
+    paddingBottom: 20, 
+  },
+
+  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
+  label: { fontSize: 16, fontWeight: '600', marginTop: 12, marginBottom: 6 },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+  textArea: {
+    minHeight: 160,
+  },
+  modalButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
+  button: { flex: 1, padding: 14, borderRadius: 8, alignItems: 'center', marginHorizontal: 6 },
+  saveButton: { backgroundColor: '#0066cc' },
+  cancelButton: { backgroundColor: '#999' },
+  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 });
