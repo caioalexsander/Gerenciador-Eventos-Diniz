@@ -6,7 +6,11 @@ import api from '../services/api';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
-export default function NovoContratoScreen({ navigation }: any) {
+export default function NovoContratoScreen({ navigation, route }: any) {
+
+  const [isEditing, setIsEditing] = useState(false);           // ← ADICIONADO
+  const [contratoId, setContratoId] = useState<number | null>(null); // ← ADICIONADO
+  
   const [form, setForm] = useState({
     nome_contratante: '',
     cpf_contratante: '',
@@ -21,7 +25,7 @@ export default function NovoContratoScreen({ navigation }: any) {
     preco_por_convidado: '',
     preco_total: '',
     clausula_pagamento: 'Opção 1',
-    clausula_texto: '', // ✅ ADICIONADO
+    clausula_texto: '',
     assinatura: 'Digital',
     cardapio_selecionado: [] as string[],
     observacoes: '',
@@ -32,6 +36,38 @@ export default function NovoContratoScreen({ navigation }: any) {
   const [tiposEvento, setTiposEvento] = useState<string[]>([]);
   const [clausulasBase, setClausulasBase] = useState<Record<string, string>>({});
   const [loadingClausulas, setLoadingClausulas] = useState(true);
+
+  // ==================== CARREGAR DADOS PARA EDIÇÃO ==================== 
+    useEffect(() => {
+      const contratoParaEditar = route.params?.contratoParaEditar;
+  
+      if (contratoParaEditar) {
+        setIsEditing(true);
+        setContratoId(contratoParaEditar.id);
+  
+        setForm({
+          nome_contratante: contratoParaEditar.nome_contratante || '',
+          cpf_contratante: contratoParaEditar.cpf_contratante || '',
+          residencia_contratante: contratoParaEditar.residencia_contratante || '',
+          data_evento: contratoParaEditar.data_evento || '',
+          hora_inicio: contratoParaEditar.hora_inicio || '',
+          hora_fim: contratoParaEditar.hora_fim || '',
+          duracao: contratoParaEditar.duracao || '',
+          local_evento: contratoParaEditar.local_evento || '',
+          tipo_evento: contratoParaEditar.tipo_evento || '',
+          num_convidados: contratoParaEditar.num_convidados || '',
+          preco_por_convidado: contratoParaEditar.preco_por_convidado || '',
+          preco_total: contratoParaEditar.preco_total?.toString() || '',
+          clausula_pagamento: contratoParaEditar.clausula_pagamento || '',
+          clausula_texto: contratoParaEditar.clausula_texto || '',
+          assinatura: contratoParaEditar.assinatura || 'Digital',
+          cardapio_selecionado: contratoParaEditar.cardapio_selecionado || [],
+          observacoes: contratoParaEditar.observacoes || '',
+        });
+  
+        setCardapioSelecionado(contratoParaEditar.cardapio_selecionado || []);
+      }
+    }, [route.params]);
 
   // ==================== CARREGAR CLÁUSULAS E TIPOS DE EVENTO ====================
     useEffect(() => {
@@ -66,21 +102,23 @@ export default function NovoContratoScreen({ navigation }: any) {
           setTiposEvento(tiposEventoList);
 
           // Seleciona automaticamente a primeira cláusula de pagamento
-          if (Object.keys(clausulasMap).length > 0) {
-            const primeiraClausula = Object.keys(clausulasMap)[0];
-            setForm(prev => ({
-              ...prev,
-              clausula_pagamento: primeiraClausula,
-              clausula_texto: gerarClausula(clausulasMap[primeiraClausula])
-            }));
-          }
+          if (!isEditing) {
+            if (Object.keys(clausulasMap).length > 0) {
+              const primeiraClausula = Object.keys(clausulasMap)[0];
+              setForm(prev => ({
+                ...prev,
+                clausula_pagamento: primeiraClausula,
+                clausula_texto: gerarClausula(clausulasMap[primeiraClausula])
+              }));
+            }
 
-          // Seleciona automaticamente o primeiro tipo de evento
-          if (tiposEventoList.length > 0) {
-            setForm(prev => ({
-              ...prev,
-              tipo_evento: tiposEventoList[0]
-            }));
+            // Seleciona automaticamente o primeiro tipo de evento
+            if (tiposEventoList.length > 0) {
+              setForm(prev => ({
+                ...prev,
+                tipo_evento: tiposEventoList[0]
+              }));
+            }
           }
 
         } catch (e) {
@@ -91,7 +129,7 @@ export default function NovoContratoScreen({ navigation }: any) {
       };
 
       carregarDados();
-    }, []);
+    }, [isEditing]);
 
   const gerarClausula = (texto: string) => {
     return texto.replace('{{preco_total}}', form.preco_total || '0,00');
@@ -119,6 +157,7 @@ export default function NovoContratoScreen({ navigation }: any) {
     }
   };
 
+  // ==================== SALVAR / ATUALIZAR CONTRATO ====================
   const salvarContrato = async () => {
       if (
           !form.nome_contratante ||
@@ -136,33 +175,56 @@ export default function NovoContratoScreen({ navigation }: any) {
       setLoading(true);
 
       try {
-        const { data: contratoSalvo, error: supabaseError } = await supabase
-          .from('contratos')
-          .insert({
-            ...form,
-            preco_total: parseFloat(form.preco_total) || 0,
-            cardapio_selecionado: cardapioSelecionado,
-            status: 'pendente'
-          })
-          .select()
-          .single();
-          
-        if (supabaseError) {
-          Alert.alert('Erro ao salvar', supabaseError.message);
-          return;
-        }
+        const dadosContrato = {
+                ...form,
+                preco_total: parseFloat(form.preco_total) || 0,
+                cardapio_selecionado: cardapioSelecionado,
+                status: 'pendente'
+              };
+        
+              let contratoSalvo;
+        
+              if (isEditing && contratoId) {
+                // ← MODIFICAÇÃO: Atualização de contrato existente
+                const { data, error: supabaseError } = await supabase
+                  .from('contratos')
+                  .update(dadosContrato)
+                  .eq('id', contratoId)
+                  .select()
+                  .single();
+        
+                if (supabaseError) throw supabaseError;
+                contratoSalvo = data;
+              } else {
+                // Criação de novo contrato
+                const { data, error: supabaseError } = await supabase
+                  .from('contratos')
+                  .insert(dadosContrato)
+                  .select()
+                  .single();
+        
+                if (supabaseError) throw supabaseError;
+                contratoSalvo = data;
+              }
 
+        // Gerar novo PDF
         const response = await api.post('/gerar-pdf', { 
             ...form, 
             id: contratoSalvo.id ,
             cardapio_selecionado: cardapioSelecionado,
           });
-
+        
         if (response.data.success) {
           const pdfUrl = response.data.pdfUrl;
           
+          // ← MODIFICAÇÃO: Atualiza o link do PDF no banco
+          await supabase
+            .from('contratos')
+            .update({ pdf_url: pdfUrl })
+            .eq('id', contratoSalvo.id);
+
           Alert.alert(
-            '✅ Contrato Gerado com Sucesso!',
+            isEditing ? '✅ Contrato Atualizado com Sucesso!' : '✅ Contrato Gerado com Sucesso!',
             `Contrato gerado com sucesso!\n\nURL: ${pdfUrl.substring(0, 60)}...`,
             [
               { text: 'Ver PDF', onPress: () => abrirPDF(pdfUrl) },
@@ -330,7 +392,7 @@ export default function NovoContratoScreen({ navigation }: any) {
   
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Novo Contrato</Text>
+      <Text style={styles.title}>{isEditing ? 'Editar Contrato' : 'Novo Contrato'} </Text>
 
       <TextInput style={styles.input} placeholder="Nome da Contratante" value={form.nome_contratante} onChangeText={(t) => setForm({...form, nome_contratante: t})} />
       <TextInput style={styles.input} placeholder="CPF da Contratante" value={form.cpf_contratante} onChangeText={(t) => setForm({...form, cpf_contratante: t})} keyboardType="numeric" />
@@ -430,7 +492,10 @@ export default function NovoContratoScreen({ navigation }: any) {
       )}
 
       <Button 
-        title={loading ? "Salvando e Gerando PDF..." : "💾 Salvar Contrato e Gerar PDF"} 
+        title={loading 
+          ? (isEditing ? "Atualizando e Gerando Novo PDF..." : "Salvando e Gerando PDF...") 
+          : (isEditing ? "💾 Atualizar Contrato e Gerar Novo PDF" : "💾 Salvar Contrato e Gerar PDF")
+        } 
         onPress={salvarContrato} 
         disabled={loading} 
       />
