@@ -5,7 +5,7 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 
 export default function VisualizarPDFScreen({ route, navigation }: any) {
-  const { pdfUrl } = route.params;
+  const { pdfUrl, contrato } = route.params;
 
   const abrirPDF = async () => {
     try {
@@ -16,6 +16,7 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
     }
   };
 
+  //Compartilhar contrato
   const compartilharPDF = async () => {
     try {
       if (!pdfUrl) {
@@ -47,6 +48,17 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
     }
   };
 
+  //Editar contrato
+  const editarContrato = () => {
+    if (!contrato) {
+      Alert.alert('Erro', 'Dados do contrato não encontrados.');
+      return;
+    }
+    navigation.navigate('NovoContrato', { 
+      contratoParaEditar: contrato 
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Contrato Gerado</Text>
@@ -54,6 +66,7 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
 
       <Button title="📄 Abrir PDF no Navegador" onPress={abrirPDF} color="#2196F3" />
       <Button title="📤 Compartilhar PDF" onPress={compartilharPDF} color="#4CAF50" />
+      <Button title="✏️ Editar Contrato" onPress={editarContrato} color="#FF9800" />
       
       <View style={{ marginTop: 20 }}>
                   

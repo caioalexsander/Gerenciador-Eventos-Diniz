@@ -8,15 +8,17 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
-  ScrollView,        // ← Adicionado
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../services/supabase';
+import { Picker } from '@react-native-picker/picker';
 
 interface ModeloContrato {
   id: number;
   titulo: string;
   texto_completo: string;
+  tipo_de_clausula: string;
 }
 
 const ConfiguracaoClausulaContratoScreen: React.FC = () => {
@@ -27,6 +29,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
 
   const [titulo, setTitulo] = useState('');
   const [textoCompleto, setTextoCompleto] = useState('');
+  const [tipoDeClausula, setTipoDeClausula] = useState<'C_P' | 'C_T'>('C_P'); 
   const [textHeight, setTextHeight] = useState(160); // Altura inicial
 
   const carregarModelos = async () => {
@@ -49,6 +52,9 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
     carregarModelos();
   }, []);
 
+  // ==================== SUBSTITUA APENAS ESSAS PARTES ====================
+
+// 1. Dentro do salvarClausula (substitua a função inteira):
   const salvarClausula = async () => {
     if (!titulo.trim() || !textoCompleto.trim()) {
       Alert.alert('Atenção', 'Título e texto são obrigatórios!');
@@ -58,7 +64,11 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
     if (editingItem) {
       const { error } = await supabase
         .from('modelo_contrato')
-        .update({ titulo, texto_completo: textoCompleto })
+        .update({ 
+          titulo, 
+          texto_completo: textoCompleto,
+          tipo_de_clausula: tipoDeClausula   // ← ADICIONADO
+        })
         .eq('id', editingItem.id);
 
       if (error) Alert.alert('Erro', 'Não foi possível atualizar.');
@@ -66,7 +76,11 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
     } else {
       const { error } = await supabase
         .from('modelo_contrato')
-        .insert([{ titulo, texto_completo: textoCompleto }]);
+        .insert([{ 
+          titulo, 
+          texto_completo: textoCompleto,
+          tipo_de_clausula: tipoDeClausula    // ← ADICIONADO
+        }]);
 
       if (error) Alert.alert('Erro', 'Não foi possível criar.');
       else Alert.alert('Sucesso', 'Cláusula criada!');
@@ -76,6 +90,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
     setEditingItem(null);
     setTitulo('');
     setTextoCompleto('');
+    setTipoDeClausula('C_P');        // ← ADICIONADO
     setTextHeight(160);
     carregarModelos();
   };
@@ -84,6 +99,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
     setEditingItem(item);
     setTitulo(item.titulo);
     setTextoCompleto(item.texto_completo);
+    setTipoDeClausula(item.tipo_de_clausula as 'C_P' | 'C_T');
     setTextHeight(160); // Reset altura ao editar
     setModalVisible(true);
   };
@@ -113,6 +129,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
             setEditingItem(null);
             setTitulo('');
             setTextoCompleto('');
+            setTipoDeClausula('C_P');
             setTextHeight(160);
             setModalVisible(true);
           }}
@@ -133,7 +150,10 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
               <Text style={styles.cardText} numberOfLines={4}>
                 {item.texto_completo}
               </Text>
-
+              <Text style={{ fontSize: 14, color: '#0066cc', marginBottom: 6 }}>
+                Tipo: {item.tipo_de_clausula}
+              </Text>
+              
               <View style={styles.actions}>
                 <TouchableOpacity style={styles.actionButton} onPress={() => editarClausula(item)}>
                   <Text style={styles.editText}>✏️ Editar</Text>
@@ -170,6 +190,17 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
                 placeholder="Ex: Prazo de Entrega"
               />
 
+              <Text style={styles.label}>Tipo de Cláusula</Text>
+              <View style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, marginBottom: 12 }}>
+                <Picker
+                  selectedValue={tipoDeClausula}
+                  onValueChange={(itemValue: 'C_P' | 'C_T') => setTipoDeClausula(itemValue)}
+                >
+                  <Picker.Item label="C_P - Cláusula de Pagamento" value="C_P" />
+                  <Picker.Item label="C_T - Tipo de Evento" value="C_T" />
+                </Picker>
+              </View>
+
               <Text style={styles.label}>Texto Completo</Text>
               <TextInput
                 style={[styles.input, styles.textArea, { height: textHeight }]}
@@ -189,6 +220,9 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
                   onPress={() => {
                     setModalVisible(false);
                     setEditingItem(null);
+                    setTitulo('');
+                    setTextoCompleto('');
+                    setTipoDeClausula('C_P');
                     setTextHeight(160);
                   }}
                 >
