@@ -244,7 +244,7 @@ export default function NovoContratoScreen({ navigation, route }: any) {
 
   const abrirPDF = (pdfUrl: string) => {
       if (pdfUrl) {
-        navigation.navigate('VisualizarPDF', { pdfUrl });
+        navigation.navigate('VisualizarPDF', { pdfUrl, contrato: form });
       } else {
         Alert.alert('Aviso', 'Este contrato ainda não possui PDF gerado.');
       }

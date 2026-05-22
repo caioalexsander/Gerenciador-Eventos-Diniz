@@ -5,7 +5,7 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 
 export default function VisualizarPDFScreen({ route, navigation }: any) {
-  const { pdfUrl, contrato } = route.params;
+  const { pdfUrl, contrato } = route.params || {};
 
   const abrirPDF = async () => {
     try {
