@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
-import NovoContratoScreen from './src/screens/NovoContratoScreen';
+import NovoContratoScreen from './src/screens/contratos/NovoContratoScreen';
 import VisualizarPDFScreen from './src/screens/VisualizarPDFScreen';
 import MeusContratosScreen from './src/screens/MeusContratosScreen';
 import CardapioScreen from './src/screens/CardapioScreen';

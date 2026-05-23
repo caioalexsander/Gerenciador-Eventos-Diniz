@@ -6,6 +6,7 @@ import api from '../services/api';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
+
 export default function NovoContratoScreen({ navigation, route }: any) {
 
   const [isEditing, setIsEditing] = useState(false);           // ← ADICIONADO
