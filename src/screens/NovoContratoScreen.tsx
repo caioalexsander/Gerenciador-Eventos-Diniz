@@ -186,95 +186,94 @@ export default function NovoContratoScreen({ navigation, route }: any) {
   };
 
   // ==================== SALVAR / ATUALIZAR CONTRATO ====================
-  const salvarContrato = async () => {
-      if (
-          !form.nome_contratante ||
-          !form.cpf_contratante ||
-          !form.data_evento ||
-          !form.local_evento ||
-          !form.num_convidados ||
-          !form.preco_por_convidado ||
-          !form.preco_total
-        ) {
-        Alert.alert('Atenção', 'Preencha todos os campos obrigatórios');
-        return;
-      }
+    const salvarContrato = async () => {
+    if (
+      !form.nome_contratante ||
+      !form.cpf_contratante ||
+      !form.data_evento ||
+      !form.local_evento ||
+      !form.num_convidados ||
+      !form.preco_por_convidado ||
+      !form.preco_total
+    ) {
+      Alert.alert('Atenção', 'Preencha todos os campos obrigatórios');
+      return;
+    }
 
-      setLoading(true);
+    setLoading(true);
 
-      try {
-        const dadosContrato = {
-                ...form,
-                preco_total: parseFloat(form.preco_total) || 0,
-                cardapio_selecionado: cardapioSelecionado,
-                status: 'pendente'
-              };
-        
-              let contratoSalvo;
-        
-              if (isEditing && contratoId) {
-                // ← MODIFICAÇÃO: Atualização de contrato existente
-                const { data, error: supabaseError } = await supabase
-                  .from('contratos')
-                  .update(dadosContrato)
-                  .eq('id', contratoId)
-                  .select()
-                  .single();
-        
-                if (supabaseError) {
-                  console.error("Erro ao atualizar:", supabaseError);
-                  throw supabaseError;
-                }
+    try {
+      const dadosContrato = {
+        ...form,
+        preco_total: parseFloat(form.preco_total) || 0,
+        cardapio_selecionado: cardapioSelecionado,
+        status: 'pendente'
+      };
 
-                contratoSalvo = data;
-                console.log("✅ Contrato atualizado com sucesso:", contratoSalvo.id);
+      let contratoSalvo: any;
 
-              } else {
-                // Criação de novo contrato
-                const { data, error: supabaseError } = await supabase
-                  .from('contratos')
-                  .insert(dadosContrato)
-                  .select()
-                  .single();
-        
-                if (supabaseError) throw supabaseError;
-                contratoSalvo = data;
-              }
+      if (isEditing && contratoId) {
+        console.log("🔄 Atualizando contrato ID:", contratoId); // Debug
 
-        // Gerar novo PDF
-        const response = await api.post('/gerar-pdf', { 
-            ...form, 
-            id: contratoSalvo.id ,
-            cardapio_selecionado: cardapioSelecionado,
-          });
-        
-        if (response.data.success) {
-          const pdfUrl = response.data.pdfUrl;
-          
-          // ← MODIFICAÇÃO: Atualiza o link do PDF no banco
-          await supabase
-            .from('contratos')
-            .update({ pdf_url: pdfUrl })
-            .eq('id', contratoSalvo.id);
+        const { data, error: supabaseError } = await supabase
+          .from('contratos')
+          .update(dadosContrato)
+          .eq('id', contratoId)
+          .select()
+          .single();
 
-          Alert.alert(
-            isEditing ? '✅ Contrato Atualizado com Sucesso!' : '✅ Contrato Gerado com Sucesso!',
-            `Contrato gerado com sucesso!\n\nURL: ${pdfUrl.substring(0, 60)}...`,
-            [
-              { text: 'Ver PDF', onPress: () => abrirPDF(pdfUrl) },
-              { text: '📤 Compartilhar PDF', onPress: () => compartilharPDF(pdfUrl) },
-              { text: 'Fechar', style: 'cancel' }
-            ]
-          );
+        if (supabaseError) {
+          console.error("Erro Supabase Update:", supabaseError);
+          throw new Error(supabaseError.message);
         }
 
-      } catch (error: any) {
-        console.error(error);
-        Alert.alert('Erro', 'Ocorreu um erro ao salvar o contrato.\n\n' + (error.message || ''));
-      } finally {
-        setLoading(false);
+        contratoSalvo = data;
+      } else {
+        // Criação de novo contrato
+        const { data, error: supabaseError } = await supabase
+          .from('contratos')
+          .insert(dadosContrato)
+          .select()
+          .single();
+
+        if (supabaseError) throw supabaseError;
+        contratoSalvo = data;
       }
-    };
+
+      // Gerar PDF
+      const response = await api.post('/gerar-pdf', { 
+        ...form, 
+        id: contratoSalvo.id,
+        cardapio_selecionado: cardapioSelecionado,
+      });
+
+      if (response.data.success) {
+        const pdfUrl = response.data.pdfUrl;
+
+        // Atualiza o link do PDF
+        await supabase
+          .from('contratos')
+          .update({ pdf_url: pdfUrl })
+          .eq('id', contratoSalvo.id);
+
+        Alert.alert(
+          isEditing ? '✅ Contrato Atualizado com Sucesso!' : '✅ Contrato Gerado com Sucesso!',
+          `PDF gerado com sucesso!`,
+          [
+            { text: 'Ver PDF', onPress: () => abrirPDF(pdfUrl) },
+            { text: '📤 Compartilhar PDF', onPress: () => compartilharPDF(pdfUrl) },
+            { text: 'Fechar', style: 'cancel' }
+          ]
+        );
+      }
+
+    } catch (error: any) {
+      console.error("Erro ao salvar contrato:", error);
+      Alert.alert('Erro', error.message || 'Ocorreu um erro ao salvar o contrato.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Substitua a função abrirPDF por esta:
     const abrirPDF = (pdfUrl: string) => {
