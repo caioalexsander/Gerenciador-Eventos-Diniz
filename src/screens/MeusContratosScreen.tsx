@@ -25,16 +25,19 @@ export default function MeusContratosScreen({ navigation }: any) {
     carregarContratos();
   }, []);
 
-  const verPDF = (pdfUrl: string) => {
-    if (pdfUrl) {
-      navigation.navigate('VisualizarPDF', { pdfUrl });
+  const verPDF = (item: any) => { 
+    if (item.pdf_url) {
+      navigation.navigate('VisualizarPDF', { 
+        pdfUrl: item.pdf_url,
+        contrato: item
+      });
     } else {
       Alert.alert('Aviso', 'Este contrato ainda não possui PDF gerado.');
     }
   };
 
   const renderContrato = ({ item }: any) => (
-    <TouchableOpacity style={styles.card} onPress={() => verPDF(item.pdf_url)}>
+    <TouchableOpacity style={styles.card} onPress={() => verPDF(item)}>
       <View style={styles.cardHeader}>
         <Text style={styles.nome}>{item.nome_contratante}</Text>
         <Text style={styles.data}>{item.data_evento}</Text>

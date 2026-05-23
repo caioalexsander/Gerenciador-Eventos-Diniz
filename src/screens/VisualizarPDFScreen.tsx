@@ -5,55 +5,43 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 
 export default function VisualizarPDFScreen({ route, navigation }: any) {
-  const { pdfUrl, contrato } = route.params || {};
+  const params = route.params || {};
+  const { pdfUrl, contrato } = params;
 
   const abrirPDF = async () => {
     try {
       await WebBrowser.openBrowserAsync(pdfUrl);
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível abrir o PDF');
-      console.error(error);
     }
   };
 
-  //Compartilhar contrato
   const compartilharPDF = async () => {
     try {
       if (!pdfUrl) {
         Alert.alert('Erro', 'PDF não encontrado.');
         return;
       }
-
-      const fileUri =
-        FileSystem.cacheDirectory + 'contrato.pdf';
-
-      const download =
-        await FileSystem.downloadAsync(
-          pdfUrl,
-          fileUri
-        );
+      const fileUri = FileSystem.cacheDirectory + 'contrato.pdf';
+      const download = await FileSystem.downloadAsync(pdfUrl, fileUri);
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(download.uri);
       } else {
         Alert.alert('PDF', pdfUrl);
       }
-
     } catch (error) {
-      console.error(error);
-      Alert.alert(
-        'Erro',
-        'Não foi possível compartilhar o PDF.'
-      );
+      Alert.alert('Erro', 'Não foi possível compartilhar o PDF.');
     }
   };
 
-  //Editar contrato
   const editarContrato = () => {
-    if (!contrato) {
-      Alert.alert('Erro', 'Dados do contrato não encontrados.');
+    if (!contrato || !contrato.id) {
+      Alert.alert('Erro', 'Dados do contrato não encontrados. Tente novamente.');
+      console.log('Params recebidos:', params); // Para debug
       return;
     }
+
     navigation.navigate('NovoContrato', { 
       contratoParaEditar: contrato 
     });
@@ -66,10 +54,14 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
 
       <Button title="📄 Abrir PDF no Navegador" onPress={abrirPDF} color="#2196F3" />
       <Button title="📤 Compartilhar PDF" onPress={compartilharPDF} color="#4CAF50" />
-      <Button title="✏️ Editar Contrato" onPress={editarContrato} color="#FF9800" />
       
-      <View style={{ marginTop: 20 }}>
-                  
+      <Button 
+        title="✏️ Editar Contrato" 
+        onPress={editarContrato} 
+        color="#FF9800" 
+      />
+
+      <View style={{ marginTop: 30 }}>
         <Button title="← Voltar" onPress={() => navigation.goBack()} color="#666" />
       </View>
     </View>

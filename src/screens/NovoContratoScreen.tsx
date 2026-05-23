@@ -37,100 +37,126 @@ export default function NovoContratoScreen({ navigation, route }: any) {
   const [clausulasBase, setClausulasBase] = useState<Record<string, string>>({});
   const [loadingClausulas, setLoadingClausulas] = useState(true);
 
-  // ==================== CARREGAR DADOS PARA EDIÇÃO ==================== 
-    useEffect(() => {
-      const contratoParaEditar = route.params?.contratoParaEditar;
-  
-      if (contratoParaEditar) {
-        setIsEditing(true);
-        setContratoId(contratoParaEditar.id);
-  
-        setForm({
-          nome_contratante: contratoParaEditar.nome_contratante || '',
-          cpf_contratante: contratoParaEditar.cpf_contratante || '',
-          residencia_contratante: contratoParaEditar.residencia_contratante || '',
-          data_evento: contratoParaEditar.data_evento || '',
-          hora_inicio: contratoParaEditar.hora_inicio || '',
-          hora_fim: contratoParaEditar.hora_fim || '',
-          duracao: contratoParaEditar.duracao || '',
-          local_evento: contratoParaEditar.local_evento || '',
-          tipo_evento: contratoParaEditar.tipo_evento || '',
-          num_convidados: contratoParaEditar.num_convidados || '',
-          preco_por_convidado: contratoParaEditar.preco_por_convidado || '',
-          preco_total: contratoParaEditar.preco_total?.toString() || '',
-          clausula_pagamento: contratoParaEditar.clausula_pagamento || '',
-          clausula_texto: contratoParaEditar.clausula_texto || '',
-          assinatura: contratoParaEditar.assinatura || 'Digital',
-          cardapio_selecionado: contratoParaEditar.cardapio_selecionado || [],
-          observacoes: contratoParaEditar.observacoes || '',
-        });
-  
-        setCardapioSelecionado(contratoParaEditar.cardapio_selecionado || []);
-      }
-    }, [route.params]);
+    // ==================== CARREGAR DADOS PARA EDIÇÃO ====================
+  useEffect(() => {
+    const contratoParaEditar = route.params?.contratoParaEditar;
+
+    if (contratoParaEditar) {
+      setIsEditing(true);
+      setContratoId(contratoParaEditar.id);
+
+      console.log('📋 Carregando contrato para edição:', contratoParaEditar); // ← Debug
+
+      setForm({
+        nome_contratante: contratoParaEditar.nome_contratante || '',
+        cpf_contratante: contratoParaEditar.cpf_contratante || '',                    // ← Garantido
+        residencia_contratante: contratoParaEditar.residencia_contratante || '',
+        data_evento: contratoParaEditar.data_evento || '',
+        hora_inicio: contratoParaEditar.hora_inicio || '',
+        hora_fim: contratoParaEditar.hora_fim || '',
+        duracao: contratoParaEditar.duracao || '',
+        local_evento: contratoParaEditar.local_evento || '',
+        tipo_evento: contratoParaEditar.tipo_evento || '',                           // ← Garantido
+        num_convidados: contratoParaEditar.num_convidados?.toString() || '',
+        preco_por_convidado: contratoParaEditar.preco_por_convidado?.toString() || '',
+        preco_total: contratoParaEditar.preco_total?.toString() || '',
+        clausula_pagamento: contratoParaEditar.clausula_pagamento || '',            // ← Garantido
+        clausula_texto: contratoParaEditar.clausula_texto || '',
+        assinatura: contratoParaEditar.assinatura || 'Digital',
+        cardapio_selecionado: Array.isArray(contratoParaEditar.cardapio_selecionado) 
+          ? contratoParaEditar.cardapio_selecionado 
+          : [],
+        observacoes: contratoParaEditar.observacoes || '',
+      });
+
+      setCardapioSelecionado(
+        Array.isArray(contratoParaEditar.cardapio_selecionado) 
+          ? contratoParaEditar.cardapio_selecionado 
+          : []
+      );
+    }
+  }, [route.params]);
 
   // ==================== CARREGAR CLÁUSULAS E TIPOS DE EVENTO ====================
-    useEffect(() => {
-      const carregarDados = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('modelo_contrato')
-            .select('titulo, texto_completo, tipo_de_clausula')
-            .or('tipo_de_clausula.eq.C_P,tipo_de_clausula.eq.C_T')   // Busca os dois tipos
-            .order('titulo', { ascending: true });
+  useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('modelo_contrato')
+          .select('titulo, texto_completo, tipo_de_clausula')
+          .or('tipo_de_clausula.eq.C_P,tipo_de_clausula.eq.C_T')
+          .order('titulo', { ascending: true });
 
-          if (error) {
-            console.error('Erro ao carregar dados:', error);
-            Alert.alert('Erro', 'Não foi possível carregar os dados.');
-            return;
-          }
-
-          // Separar Cláusulas de Pagamento (C_P)
-          const clausulasMap: Record<string, string> = {};
-          const tiposEventoList: string[] = [];
-
-          data?.forEach(item => {
-            if (item.tipo_de_clausula === 'C_P' && item.titulo && item.texto_completo) {
-              clausulasMap[item.titulo] = item.texto_completo;
-            }
-            if (item.tipo_de_clausula === 'C_T' && item.titulo) {
-              tiposEventoList.push(item.titulo);
-            }
-          });
-
-          setClausulasBase(clausulasMap);
-          setTiposEvento(tiposEventoList);
-
-          // Seleciona automaticamente a primeira cláusula de pagamento
-          if (!isEditing) {
-            if (Object.keys(clausulasMap).length > 0) {
-              const primeiraClausula = Object.keys(clausulasMap)[0];
-              setForm(prev => ({
-                ...prev,
-                clausula_pagamento: primeiraClausula,
-                clausula_texto: gerarClausula(clausulasMap[primeiraClausula])
-              }));
-            }
-
-            // Seleciona automaticamente o primeiro tipo de evento
-            if (tiposEventoList.length > 0) {
-              setForm(prev => ({
-                ...prev,
-                tipo_evento: tiposEventoList[0]
-              }));
-            }
-          }
-
-        } catch (e) {
-          console.error(e);
-        } finally {
-          setLoadingClausulas(false);
+        if (error) {
+          console.error('Erro ao carregar dados:', error);
+          return;
         }
-      };
 
-      carregarDados();
-    }, [isEditing]);
+        const clausulasMap: Record<string, string> = {};
+        const tiposEventoList: string[] = [];
 
+        data?.forEach(item => {
+          if (item.tipo_de_clausula === 'C_P' && item.titulo && item.texto_completo) {
+            clausulasMap[item.titulo] = item.texto_completo;
+          }
+          if (item.tipo_de_clausula === 'C_T' && item.titulo) {
+            tiposEventoList.push(item.titulo);
+          }
+        });
+
+        setClausulasBase(clausulasMap);
+        setTiposEvento(tiposEventoList);
+
+        // Se estiver editando, tenta recuperar o texto da cláusula
+        const contratoParaEditar = route.params?.contratoParaEditar;
+        if (isEditing && contratoParaEditar?.clausula_pagamento) {
+          const textoSalvo = contratoParaEditar.clausula_texto;
+          if (textoSalvo) {
+            setForm(prev => ({ ...prev, clausula_texto: textoSalvo }));
+          }
+        } 
+        // Senão, seleciona o primeiro automaticamente
+        else if (!isEditing) {
+          if (Object.keys(clausulasMap).length > 0) {
+            const primeiraClausula = Object.keys(clausulasMap)[0];
+            setForm(prev => ({
+              ...prev,
+              clausula_pagamento: primeiraClausula,
+              clausula_texto: gerarClausula(clausulasMap[primeiraClausula])
+            }));
+          }
+
+          if (tiposEventoList.length > 0) {
+            setForm(prev => ({
+              ...prev,
+              tipo_evento: tiposEventoList[0]
+            }));
+          }
+        }
+
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingClausulas(false);
+      }
+    };
+
+    carregarDados();
+  }, [isEditing, route.params]);
+
+    // ==================== FORÇAR CARREGAMENTO DA CLÁUSULA AO EDITAR ====================
+  useEffect(() => {
+    if (isEditing && form.clausula_pagamento && Object.keys(clausulasBase).length > 0) {
+      const textoBase = clausulasBase[form.clausula_pagamento];
+      if (textoBase) {
+        setForm(prev => ({
+          ...prev,
+          clausula_texto: textoBase
+        }));
+      }
+    }
+  }, [isEditing, form.clausula_pagamento, clausulasBase]);
+  
   const gerarClausula = (texto: string) => {
     return texto.replace('{{preco_total}}', form.preco_total || '0,00');
   };
@@ -242,12 +268,19 @@ export default function NovoContratoScreen({ navigation, route }: any) {
       }
     };
 
-  const abrirPDF = (pdfUrl: string) => {
-      if (pdfUrl) {
-        navigation.navigate('VisualizarPDF', { pdfUrl, contrato: { ...form, id: contratoId || undefined } });
-      } else {
-        Alert.alert('Aviso', 'Este contrato ainda não possui PDF gerado.');
-      }
+  // Substitua a função abrirPDF por esta:
+    const abrirPDF = (pdfUrl: string) => {
+    if (pdfUrl) {
+      navigation.navigate('VisualizarPDF', { 
+        pdfUrl, 
+        contrato: { 
+          ...form, 
+          id: contratoId 
+        } 
+      });
+    } else {
+      Alert.alert('Aviso', 'Este contrato ainda não possui PDF gerado.');
+    }
   };
 
   const compartilharPDF = async (url: string) => {
