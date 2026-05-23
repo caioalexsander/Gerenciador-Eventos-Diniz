@@ -2,7 +2,7 @@ import * as Sharing from 'expo-sharing';
 import {  Alert } from 'react-native';
 import { downloadPDF } from '../pdf/downloadPDF';
 
-const compartilharPDF = async (url: string) => {
+export const compartilharPDF = async (url: string) => {
     try {
       const fileUri = await downloadPDF(url);
       
