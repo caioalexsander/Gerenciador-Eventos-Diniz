@@ -37,30 +37,31 @@ export default function NovoContratoScreen({ navigation, route }: any) {
   const [clausulasBase, setClausulasBase] = useState<Record<string, string>>({});
   const [loadingClausulas, setLoadingClausulas] = useState(true);
 
-    // ==================== CARREGAR DADOS PARA EDIÇÃO ====================
+      // ==================== CARREGAR DADOS PARA EDIÇÃO ====================
   useEffect(() => {
     const contratoParaEditar = route.params?.contratoParaEditar;
 
     if (contratoParaEditar) {
+      console.log("🔑 ID do contrato para edição:", contratoParaEditar.id);
       setIsEditing(true);
       setContratoId(contratoParaEditar.id);
 
-      console.log('📋 Carregando contrato para edição:', contratoParaEditar); // Debug
+      console.log('📋 Carregando contrato para edição:', contratoParaEditar);
 
       setForm({
         nome_contratante: contratoParaEditar.nome_contratante || '',
-        cpf_contratante: contratoParaEditar.cpf_contratante?.toString() || '',           // ← Convertido para string
+        cpf_contratante: contratoParaEditar.cpf_contratante?.toString() || '',
         residencia_contratante: contratoParaEditar.residencia_contratante || '',
         data_evento: contratoParaEditar.data_evento || '',
         hora_inicio: contratoParaEditar.hora_inicio || '',
         hora_fim: contratoParaEditar.hora_fim || '',
         duracao: contratoParaEditar.duracao || '',
         local_evento: contratoParaEditar.local_evento || '',
-        tipo_evento: contratoParaEditar.tipo_evento || '',                              // ← Garantido
+        tipo_evento: contratoParaEditar.tipo_evento || '',                    // ← importante
         num_convidados: contratoParaEditar.num_convidados?.toString() || '',
         preco_por_convidado: contratoParaEditar.preco_por_convidado?.toString() || '',
         preco_total: contratoParaEditar.preco_total?.toString() || '',
-        clausula_pagamento: contratoParaEditar.clausula_pagamento || '',               // ← Garantido
+        clausula_pagamento: contratoParaEditar.clausula_pagamento || '',      // ← importante
         clausula_texto: contratoParaEditar.clausula_texto || '',
         assinatura: contratoParaEditar.assinatura || 'Digital',
         cardapio_selecionado: Array.isArray(contratoParaEditar.cardapio_selecionado) 
@@ -117,15 +118,19 @@ export default function NovoContratoScreen({ navigation, route }: any) {
         setClausulasBase(clausulasMap);
         setTiposEvento(tiposEventoList);
 
-        // Se estiver editando, tenta recuperar o texto da cláusula
+        // ==================== LÓGICA DE EDIÇÃO ====================
         const contratoParaEditar = route.params?.contratoParaEditar;
-        if (isEditing && contratoParaEditar?.clausula_pagamento) {
-          const textoSalvo = contratoParaEditar.clausula_texto;
-          if (textoSalvo) {
-            setForm(prev => ({ ...prev, clausula_texto: textoSalvo }));
-          }
+
+        if (isEditing && contratoParaEditar) {
+          // Força os valores vindos do banco (prioridade máxima)
+          setForm(prev => ({
+            ...prev,
+            tipo_evento: contratoParaEditar.tipo_evento || prev.tipo_evento,
+            clausula_pagamento: contratoParaEditar.clausula_pagamento || prev.clausula_pagamento,
+            clausula_texto: contratoParaEditar.clausula_texto || prev.clausula_texto,
+          }));
         } 
-        // Senão, seleciona o primeiro automaticamente
+        // Só preenche automático se for um NOVO contrato
         else if (!isEditing) {
           if (Object.keys(clausulasMap).length > 0) {
             const primeiraClausula = Object.keys(clausulasMap)[0];
@@ -216,8 +221,14 @@ export default function NovoContratoScreen({ navigation, route }: any) {
                   .select()
                   .single();
         
-                if (supabaseError) throw supabaseError;
+                if (supabaseError) {
+                  console.error("Erro ao atualizar:", supabaseError);
+                  throw supabaseError;
+                }
+
                 contratoSalvo = data;
+                console.log("✅ Contrato atualizado com sucesso:", contratoSalvo.id);
+
               } else {
                 // Criação de novo contrato
                 const { data, error: supabaseError } = await supabase
@@ -259,7 +270,7 @@ export default function NovoContratoScreen({ navigation, route }: any) {
 
       } catch (error: any) {
         console.error(error);
-        Alert.alert('Erro', 'Ocorreu um erro ao gerar o PDF.');
+        Alert.alert('Erro', 'Ocorreu um erro ao salvar o contrato.\n\n' + (error.message || ''));
       } finally {
         setLoading(false);
       }
