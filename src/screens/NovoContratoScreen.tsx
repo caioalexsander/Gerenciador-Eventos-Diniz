@@ -45,22 +45,22 @@ export default function NovoContratoScreen({ navigation, route }: any) {
       setIsEditing(true);
       setContratoId(contratoParaEditar.id);
 
-      console.log('📋 Carregando contrato para edição:', contratoParaEditar); // ← Debug
+      console.log('📋 Carregando contrato para edição:', contratoParaEditar); // Debug
 
       setForm({
         nome_contratante: contratoParaEditar.nome_contratante || '',
-        cpf_contratante: contratoParaEditar.cpf_contratante || '',                    // ← Garantido
+        cpf_contratante: contratoParaEditar.cpf_contratante?.toString() || '',           // ← Convertido para string
         residencia_contratante: contratoParaEditar.residencia_contratante || '',
         data_evento: contratoParaEditar.data_evento || '',
         hora_inicio: contratoParaEditar.hora_inicio || '',
         hora_fim: contratoParaEditar.hora_fim || '',
         duracao: contratoParaEditar.duracao || '',
         local_evento: contratoParaEditar.local_evento || '',
-        tipo_evento: contratoParaEditar.tipo_evento || '',                           // ← Garantido
+        tipo_evento: contratoParaEditar.tipo_evento || '',                              // ← Garantido
         num_convidados: contratoParaEditar.num_convidados?.toString() || '',
         preco_por_convidado: contratoParaEditar.preco_por_convidado?.toString() || '',
         preco_total: contratoParaEditar.preco_total?.toString() || '',
-        clausula_pagamento: contratoParaEditar.clausula_pagamento || '',            // ← Garantido
+        clausula_pagamento: contratoParaEditar.clausula_pagamento || '',               // ← Garantido
         clausula_texto: contratoParaEditar.clausula_texto || '',
         assinatura: contratoParaEditar.assinatura || 'Digital',
         cardapio_selecionado: Array.isArray(contratoParaEditar.cardapio_selecionado) 
@@ -76,6 +76,16 @@ export default function NovoContratoScreen({ navigation, route }: any) {
       );
     }
   }, [route.params]);
+
+    // ==================== ATUALIZAR CLÁUSULA QUANDO CARREGAR EDIÇÃO ====================
+  useEffect(() => {
+    if (isEditing && form.clausula_pagamento && Object.keys(clausulasBase).length > 0) {
+      const texto = clausulasBase[form.clausula_pagamento];
+      if (texto && texto !== form.clausula_texto) {
+        setForm(prev => ({ ...prev, clausula_texto: texto }));
+      }
+    }
+  }, [isEditing, form.clausula_pagamento, clausulasBase]);
 
   // ==================== CARREGAR CLÁUSULAS E TIPOS DE EVENTO ====================
   useEffect(() => {
@@ -144,19 +154,6 @@ export default function NovoContratoScreen({ navigation, route }: any) {
     carregarDados();
   }, [isEditing, route.params]);
 
-    // ==================== FORÇAR CARREGAMENTO DA CLÁUSULA AO EDITAR ====================
-  useEffect(() => {
-    if (isEditing && form.clausula_pagamento && Object.keys(clausulasBase).length > 0) {
-      const textoBase = clausulasBase[form.clausula_pagamento];
-      if (textoBase) {
-        setForm(prev => ({
-          ...prev,
-          clausula_texto: textoBase
-        }));
-      }
-    }
-  }, [isEditing, form.clausula_pagamento, clausulasBase]);
-  
   const gerarClausula = (texto: string) => {
     return texto.replace('{{preco_total}}', form.preco_total || '0,00');
   };
