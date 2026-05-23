@@ -91,6 +91,16 @@ export default function ContratoFormFields({ form, setForm, tiposEvento }: Props
           />
         </View>
       </View>
+        
+        <Text style={styles.label}>duraçao Do Evento</Text>
+          <TextInput
+            style={styles.input}
+            value={form.duracao}
+            onChangeText={(text) => setForm((prev: any) => ({ ...prev, duracao: text }))}
+            placeholder="HH:MM"
+            keyboardType="numeric"
+            maxLength={5}
+          />
 
       <Text style={styles.label}>Local do Evento</Text>
       <TextInput
@@ -126,6 +136,17 @@ export default function ContratoFormFields({ form, setForm, tiposEvento }: Props
         keyboardType="numeric"
         placeholder="Valor total do contrato"
       />
+
+      <Text style={styles.label}>Tipo de Assinatura</Text>
+      <Picker
+        selectedValue={form.assinatura}
+        onValueChange={(value) => setForm((prev: any) => ({ ...prev, assinatura: value }))}
+        style={styles.picker}
+      >
+        <Picker.Item label="Assinatura Digital" value="Digital" />
+        <Picker.Item label="Assinatura Manual" value="Manual" />
+      </Picker>
+
     </View>
   );
 }
