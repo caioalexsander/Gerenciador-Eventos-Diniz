@@ -6,6 +6,7 @@ import { FormContrato, ContratoParaEditar } from '../types/contrato.types';
 import ContratosService from '../services/contratos.service';
 import { compartilharPDF } from '../components/pdf/compartilharPDF';
 import CardapioSelector from '../components/forms/contrato/CardapioSelector';
+import {StorageService} from '../services/storage.service';
 
 export const useContrato = (route: any, navigation: any) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -150,6 +151,18 @@ export const useContrato = (route: any, navigation: any) => {
 
       let resultado;
       let contratoSalvo: any;
+    
+    // ==================== EDIÇÃO: DELETAR PDF ANTIGO ====================
+      if (isEditing && contratoId && route.params?.contratoParaEditar?.pdf_url) {
+        const pdfUrlAntigo = route.params.contratoParaEditar.pdf_url;
+        
+        try {
+          await StorageService.deletarPDF(pdfUrlAntigo);  // ← Nova chamada
+          console.log('🗑️ PDF antigo deletado do Storage');
+        } catch (e) {
+          console.warn('Não foi possível deletar PDF antigo (pode não existir):', e);
+        }
+      }
 
       if (isEditing && contratoId) {
         resultado = await ContratosService.atualizarContrato(contratoId, dadosContrato);
