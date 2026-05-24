@@ -3,36 +3,39 @@ import { View, StyleSheet, Alert, Button, Text } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
+import { compartilharPDF } from '../components/pdf/compartilharPDF';
+import { abrirPDF } from '../components/pdf/abrirPDF';
+import { deletarContrato } from '../components/contrato/deletarContrato';
 
 export default function VisualizarPDFScreen({ route, navigation }: any) {
   const params = route.params || {};
   const { pdfUrl, contrato } = params;
 
-  const abrirPDF = async () => {
-    try {
-      await WebBrowser.openBrowserAsync(pdfUrl);
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível abrir o PDF');
-    }
-  };
+  const confirmarExclusao = () => {
 
-  const compartilharPDF = async () => {
-    try {
-      if (!pdfUrl) {
-        Alert.alert('Erro', 'PDF não encontrado.');
-        return;
-      }
-      const fileUri = FileSystem.cacheDirectory + 'contrato.pdf';
-      const download = await FileSystem.downloadAsync(pdfUrl, fileUri);
+    Alert.alert(
+      'Deletar contrato',
+      'Deseja realmente excluir?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Deletar',
+          style: 'destructive',
+          onPress: async () => {
 
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(download.uri);
-      } else {
-        Alert.alert('PDF', pdfUrl);
-      }
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível compartilhar o PDF.');
-    }
+            await deletarContrato({
+              id: contrato.id,
+              pdfUrl,
+            });
+
+            navigation.goBack();
+          },
+        },
+      ]
+    );
   };
 
   const editarContrato = () => {
@@ -52,14 +55,10 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
       <Text style={styles.title}>Contrato Gerado</Text>
       <Text style={styles.subtitle}>Toque no botão abaixo para visualizar o PDF</Text>
 
-      <Button title="📄 Abrir PDF no Navegador" onPress={abrirPDF} color="#2196F3" />
-      <Button title="📤 Compartilhar PDF" onPress={compartilharPDF} color="#4CAF50" />
-      
-      <Button 
-        title="✏️ Editar Contrato" 
-        onPress={editarContrato} 
-        color="#FF9800" 
-      />
+      <Button title="📄 Abrir PDF" onPress={() =>abrirPDF(pdfUrl)} color="#2196F3" />
+      <Button title="📤 Compartilhar PDF" onPress={() => compartilharPDF(pdfUrl)} color="#4CAF50" />
+      <Button title="✏️ Editar Contrato" onPress={editarContrato} color="#FF9800" />
+      <Button title="🗑️ Deletar Contrato" onPress={confirmarExclusao} color="#ff000d"/>
 
       <View style={{ marginTop: 30 }}>
         <Button title="← Voltar" onPress={() => navigation.goBack()} color="#666" />

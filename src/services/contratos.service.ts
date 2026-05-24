@@ -114,7 +114,7 @@ export class ContratosService {
   }
 
   // ==================== DELETAR CONTRATO ====================
-  static async deletarContrato(id: number) {
+  static async deletarinfodb(id: number) {
     try {
       const { error } = await supabase
         .from('contratos')
@@ -143,7 +143,7 @@ export class ContratosService {
       throw error;
     }
   }
-
+  
   // ==================== ATUALIZAR STATUS ====================
   static async atualizarStatus(id: number, status: string) {
     try {
