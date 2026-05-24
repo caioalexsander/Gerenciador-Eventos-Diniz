@@ -152,15 +152,14 @@ export const useContrato = (route: any, navigation: any) => {
       let resultado;
       let contratoSalvo: any;
     
-    // ==================== EDIÇÃO: DELETAR PDF ANTIGO ====================
+      // ==================== EDIÇÃO: DELETAR PDF ANTIGO ====================
       if (isEditing && contratoId && route.params?.contratoParaEditar?.pdf_url) {
         const pdfUrlAntigo = route.params.contratoParaEditar.pdf_url;
         
         try {
-          await StorageService.deletarPDF(pdfUrlAntigo);  // ← Nova chamada
-          console.log('🗑️ PDF antigo deletado do Storage');
+          await StorageService.deletarPDF(pdfUrlAntigo);
         } catch (e) {
-          console.warn('Não foi possível deletar PDF antigo (pode não existir):', e);
+          console.warn('Não foi possível deletar o PDF antigo (pode não existir):', e);
         }
       }
 

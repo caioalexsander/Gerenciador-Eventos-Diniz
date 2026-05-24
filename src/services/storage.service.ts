@@ -1,28 +1,36 @@
 import { supabase } from './supabase';
 
-export class StorageService {
-
-  static async deletarPDF(pdfUrl: string) {
+export const StorageService = {
+  async deletarPDF(pdfUrl: string) {
     try {
-      if (!pdfUrl) return;
+      if (!pdfUrl) {
+        console.warn('URL do PDF está vazia');
+        return;
+      }
 
-      // Extrai o path do arquivo (ex: "contratos/contrato-123.pdf")
-      const urlParts = pdfUrl.split('/storage/v1/object/public/');
-      if (urlParts.length < 2) return;
+      console.log('🗑️ Tentando deletar PDF:', pdfUrl);
 
-      const fullPath = urlParts[1];
-      const path = fullPath.split('?')[0]; // remove query params
+      // Extrai o filename do URL
+      const urlParts = pdfUrl.split('/storage/v1/object/public/contratos/');
+      if (urlParts.length < 2) {
+        console.warn('Formato de URL não reconhecido');
+        return;
+      }
+
+      let fileName = urlParts[1].split('?')[0]; // remove query params
 
       const { error } = await supabase.storage
-        .from('contratos')           // ← Nome do seu bucket
-        .remove([path]);
+        .from('contratos')
+        .remove([fileName]);
 
-      if (error) throw error;
-      
-      console.log('PDF deletado com sucesso:', path);
+      if (error) {
+        console.error('Erro ao deletar do Storage:', error);
+        throw error;
+      }
+
+      console.log('✅ PDF deletado com sucesso:', fileName);
     } catch (error) {
-      console.error('Erro ao deletar PDF do Storage:', error);
-      // Não quebrar o fluxo se falhar na deleção
+      console.error('❌ Falha ao deletar PDF antigo:', error);
     }
   }
-}
+};
