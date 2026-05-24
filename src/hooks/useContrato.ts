@@ -5,12 +5,13 @@ import api from '../services/api';
 import { FormContrato, ContratoParaEditar } from '../types/contrato.types';
 import ContratosService from '../services/contratos.service';
 import { compartilharPDF } from '../components/pdf/compartilharPDF';
+import CardapioSelector from '../components/forms/contrato/CardapioSelector';
 
 export const useContrato = (route: any, navigation: any) => {
   const [isEditing, setIsEditing] = useState(false);
   const [contratoId, setContratoId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-
+  
   const [form, setForm] = useState<FormContrato>({
     nome_contratante: '',
     cpf_contratante: '',
@@ -140,20 +141,22 @@ export const useContrato = (route: any, navigation: any) => {
     setLoading(true);
 
     try {
-      const dadosParaSalvar = {
+      // ✅ CORREÇÃO: Mesclar cardapioSelecionado no form antes de salvar
+      const dadosContrato = {
         ...form,
-        cardapio_selecionado: cardapioSelecionado,   // ← CORREÇÃO IMPORTANTE
+        cardapio_selecionado: cardapioSelecionado,
+        status: 'pendente'
       };
 
       let resultado;
       let contratoSalvo: any;
 
       if (isEditing && contratoId) {
-        resultado = await ContratosService.atualizarContrato(contratoId, dadosParaSalvar);
+        resultado = await ContratosService.atualizarContrato(contratoId, dadosContrato);
         contratoSalvo = resultado;
         Alert.alert('Sucesso', 'Contrato atualizado com sucesso!');
       } else {
-        resultado = await ContratosService.criarContrato(dadosParaSalvar);
+        resultado = await ContratosService.criarContrato(dadosContrato);
         contratoSalvo = resultado;
         Alert.alert('Sucesso', 'Contrato criado com sucesso!');
       }
@@ -168,7 +171,6 @@ export const useContrato = (route: any, navigation: any) => {
       if (response.data?.success && response.data?.pdfUrl) {
         const pdfUrl = response.data.pdfUrl;
 
-        // Atualiza o contrato com o link do PDF
         await supabase
           .from('contratos')
           .update({ pdf_url: pdfUrl })
@@ -176,20 +178,18 @@ export const useContrato = (route: any, navigation: any) => {
 
         Alert.alert(
           '✅ Sucesso!',
-          'Contrato salvo e PDF gerado com sucesso!',
+          isEditing ? 'Contrato atualizado e PDF gerado!' : 'Contrato criado e PDF gerado!',
           [
-            { text: 'Ver PDF', onPress: () => navigation.navigate('VisualizarPDF', { pdfUrl, contrato: contratoSalvo }) },
+            { text: 'Ver PDF', onPress: () => navigation.navigate('VisualizarPDF', { pdfUrl }) },
             { text: 'Compartilhar', onPress: () => compartilharPDF(pdfUrl) },
-            { text: 'Fechar', style: 'cancel' }
+            { text: 'OK', style: 'cancel' }
           ]
         );
-      } else {
-        Alert.alert('Aviso', 'Contrato salvo, mas PDF não foi gerado.');
       }
 
     } catch (error: any) {
-      console.error('Erro ao salvar contrato:', error);
-      Alert.alert('Erro', error.message || 'Ocorreu um erro ao salvar o contrato.');
+      console.error("Erro ao salvar contrato:", error);
+      Alert.alert('Erro', error.message || 'Não foi possível salvar o contrato.');
     } finally {
       setLoading(false);
     }

@@ -37,7 +37,7 @@ export default function NovoContratoScreen({ navigation, route }: any) {
         clausulasBase={clausulasBase} 
       />
 
-      <CardapioSelector 
+      <CardapioSelector
         itensCardapio={itensCardapio}
         cardapioSelecionado={cardapioSelecionado}
         toggleItem={toggleItem}

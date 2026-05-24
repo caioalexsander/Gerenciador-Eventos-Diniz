@@ -5,7 +5,7 @@ import { FormContrato, ContratoParaEditar } from '../types/contrato.types';
 export class ContratosService {
 
   // ==================== CRIAR NOVO CONTRATO ====================
-  static async criarContrato(form: FormContrato, cardapioSelecionado: string[]) {
+  static async criarContrato(form: FormContrato) {
     try {
       const dadosContrato = {
         nome_contratante: form.nome_contratante.trim(),
@@ -23,7 +23,7 @@ export class ContratosService {
         clausula_pagamento: form.clausula_pagamento,
         clausula_texto: form.clausula_texto,
         assinatura: form.assinatura,
-        cardapio_selecionado: cardapioSelecionado,
+        cardapio_selecionado: form.cardapio_selecionado || [],   // ← Usa o que vem do form
         observacoes: form.observacoes?.trim() || '',
         status: 'pendente',
       };
@@ -43,7 +43,7 @@ export class ContratosService {
   }
 
   // ==================== ATUALIZAR CONTRATO ====================
-  static async atualizarContrato(id: number, form: FormContrato, cardapioSelecionado: string[]) {
+  static async atualizarContrato(id: number, form: FormContrato) {
     try {
       const dadosContrato = {
         nome_contratante: form.nome_contratante.trim(),
@@ -61,7 +61,7 @@ export class ContratosService {
         clausula_pagamento: form.clausula_pagamento,
         clausula_texto: form.clausula_texto,
         assinatura: form.assinatura,
-        cardapio_selecionado: form.cardapio_selecionado || [],
+        cardapio_selecionado: form.cardapio_selecionado || [],   // ← Usa o que vem do form
         observacoes: form.observacoes?.trim() || '',
       };
 
