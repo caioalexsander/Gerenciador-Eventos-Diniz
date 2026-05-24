@@ -5,30 +5,32 @@ import { FormContrato, ContratoParaEditar } from '../types/contrato.types';
 export class ContratosService {
 
   // ==================== CRIAR NOVO CONTRATO ====================
-  static async criarContrato(form: FormContrato) {
+  static async criarContrato(form: FormContrato, cardapioSelecionado: string[]) {
     try {
+      const dadosContrato = {
+        nome_contratante: form.nome_contratante.trim(),
+        cpf_contratante: form.cpf_contratante,
+        residencia_contratante: form.residencia_contratante.trim(),
+        data_evento: form.data_evento,
+        hora_inicio: form.hora_inicio,
+        hora_fim: form.hora_fim,
+        duracao: form.duracao,
+        local_evento: form.local_evento.trim(),
+        tipo_evento: form.tipo_evento,
+        num_convidados: parseInt(form.num_convidados) || 0,
+        preco_por_convidado: parseFloat(String(form.preco_por_convidado).replace(',', '.')) || 0,
+        preco_total: parseFloat(String(form.preco_total).replace(',', '.')) || 0,
+        clausula_pagamento: form.clausula_pagamento,
+        clausula_texto: form.clausula_texto,
+        assinatura: form.assinatura,
+        cardapio_selecionado: cardapioSelecionado,
+        observacoes: form.observacoes?.trim() || '',
+        status: 'pendente',
+      };
+
       const { data, error } = await supabase
         .from('contratos')
-        .insert({
-          nome_contratante: form.nome_contratante.trim(),
-          cpf_contratante: form.cpf_contratante,
-          residencia_contratante: form.residencia_contratante.trim(),
-          data_evento: form.data_evento,
-          hora_inicio: form.hora_inicio,
-          hora_fim: form.hora_fim,
-          duracao: form.duracao,
-          local_evento: form.local_evento.trim(),
-          tipo_evento: form.tipo_evento,
-          num_convidados: parseInt(form.num_convidados) || 0,
-          preco_por_convidado: parseFloat(String(form.preco_por_convidado).replace(',', '.')) || 0,
-          preco_total: parseFloat(String(form.preco_total).replace(',', '.')) || 0,
-          clausula_pagamento: form.clausula_pagamento,
-          clausula_texto: form.clausula_texto,
-          assinatura: form.assinatura,
-          cardapio_selecionado: form.cardapio_selecionado,
-          observacoes: form.observacoes?.trim() || '',
-          status: 'Pendente',
-        })
+        .insert(dadosContrato)
         .select()
         .single();
 
@@ -41,29 +43,31 @@ export class ContratosService {
   }
 
   // ==================== ATUALIZAR CONTRATO ====================
-  static async atualizarContrato(id: number, form: FormContrato) {
+  static async atualizarContrato(id: number, form: FormContrato, cardapioSelecionado: string[]) {
     try {
+      const dadosContrato = {
+        nome_contratante: form.nome_contratante.trim(),
+        cpf_contratante: form.cpf_contratante,
+        residencia_contratante: form.residencia_contratante.trim(),
+        data_evento: form.data_evento,
+        hora_inicio: form.hora_inicio,
+        hora_fim: form.hora_fim,
+        duracao: form.duracao,
+        local_evento: form.local_evento.trim(),
+        tipo_evento: form.tipo_evento,
+        num_convidados: parseInt(form.num_convidados) || 0,
+        preco_por_convidado: parseFloat(String(form.preco_por_convidado).replace(',', '.')) || 0,
+        preco_total: parseFloat(String(form.preco_total).replace(',', '.')) || 0,
+        clausula_pagamento: form.clausula_pagamento,
+        clausula_texto: form.clausula_texto,
+        assinatura: form.assinatura,
+        cardapio_selecionado: form.cardapio_selecionado || [],
+        observacoes: form.observacoes?.trim() || '',
+      };
+
       const { data, error } = await supabase
         .from('contratos')
-        .update({
-          nome_contratante: form.nome_contratante.trim(),
-          cpf_contratante: form.cpf_contratante,
-          residencia_contratante: form.residencia_contratante.trim(),
-          data_evento: form.data_evento,
-          hora_inicio: form.hora_inicio,
-          hora_fim: form.hora_fim,
-          duracao: form.duracao,
-          local_evento: form.local_evento.trim(),
-          tipo_evento: form.tipo_evento,
-          num_convidados: parseInt(form.num_convidados) || 0,
-          preco_por_convidado: parseFloat(String(form.preco_por_convidado).replace(',', '.')) || 0,
-          preco_total: parseFloat(String(form.preco_total).replace(',', '.')) || 0,
-          clausula_pagamento: form.clausula_pagamento,
-          clausula_texto: form.clausula_texto,
-          assinatura: form.assinatura,
-          cardapio_selecionado: form.cardapio_selecionado,
-          observacoes: form.observacoes?.trim() || '',
-        })
+        .update(dadosContrato)
         .eq('id', id)
         .select()
         .single();
@@ -128,15 +132,15 @@ export class ContratosService {
   // ==================== GERAR PDF ====================
   static async gerarPDF(contrato: any) {
     try {
-      const response = await api.post('/gerar-contrato-pdf', {
-        contrato_id: contrato.id,
+      const response = await api.post('/gerar-pdf', {   // ← Aqui está o endpoint correto!
         ...contrato,
+        cardapio_selecionado: contrato.cardapio_selecionado || [],
       });
 
-      return response.data?.url || response.data?.pdf_url;
+      return response.data?.pdfUrl || response.data?.url;
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
-      throw new Error('Falha ao gerar o PDF do contrato');
+      throw error;
     }
   }
 

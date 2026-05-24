@@ -124,21 +124,72 @@ export const useContrato = (route: any, navigation: any) => {
 
   // ==================== SALVAR CONTRATO ====================
   const salvarContrato = async () => {
+    if (
+      !form.nome_contratante ||
+      !form.cpf_contratante ||
+      !form.data_evento ||
+      !form.local_evento ||
+      !form.num_convidados ||
+      !form.preco_por_convidado ||
+      !form.preco_total
+    ) {
+      Alert.alert('Atenção', 'Preencha todos os campos obrigatórios');
+      return;
+    }
+
     setLoading(true);
+
     try {
+      const dadosParaSalvar = {
+        ...form,
+        cardapio_selecionado: cardapioSelecionado,   // ← CORREÇÃO IMPORTANTE
+      };
+
       let resultado;
+      let contratoSalvo: any;
 
       if (isEditing && contratoId) {
-        resultado = await ContratosService.atualizarContrato(contratoId, form);
+        resultado = await ContratosService.atualizarContrato(contratoId, dadosParaSalvar);
+        contratoSalvo = resultado;
         Alert.alert('Sucesso', 'Contrato atualizado com sucesso!');
       } else {
-        resultado = await ContratosService.criarContrato(form);
+        resultado = await ContratosService.criarContrato(dadosParaSalvar);
+        contratoSalvo = resultado;
         Alert.alert('Sucesso', 'Contrato criado com sucesso!');
       }
 
-      navigation.goBack();
+      // ==================== GERAR PDF ====================
+      const response = await api.post('/gerar-pdf', {
+        ...form,
+        id: contratoSalvo.id,
+        cardapio_selecionado: cardapioSelecionado,
+      });
+
+      if (response.data?.success && response.data?.pdfUrl) {
+        const pdfUrl = response.data.pdfUrl;
+
+        // Atualiza o contrato com o link do PDF
+        await supabase
+          .from('contratos')
+          .update({ pdf_url: pdfUrl })
+          .eq('id', contratoSalvo.id);
+
+        Alert.alert(
+          '✅ Sucesso!',
+          'Contrato salvo e PDF gerado com sucesso!',
+          [
+            { text: 'Ver PDF', onPress: () => navigation.navigate('VisualizarPDF', { pdfUrl, contrato: contratoSalvo }) },
+            { text: 'Compartilhar', onPress: () => compartilharPDF(pdfUrl) },
+            { text: 'Fechar', style: 'cancel' }
+          ]
+        );
+      } else {
+        Alert.alert('Aviso', 'Contrato salvo, mas PDF não foi gerado.');
+      }
+
     } catch (error: any) {
-      Alert.alert('Erro', error.message || 'Ocorreu um erro ao salvar');
+      console.error('Erro ao salvar contrato:', error);
+      Alert.alert('Erro', error.message || 'Ocorreu um erro ao salvar o contrato.');
     } finally {
       setLoading(false);
     }
