@@ -1,9 +1,11 @@
+import { Alert } from 'react-native';
 import { StorageService } from '../../services/storage.service';
 import { ContratosService } from '../../services/contratos.service';
 
 type Props = {
   id: number;
   pdfUrl: string;
+  onSuccess?: () => void;
 };
 
 export const deletarContrato = async ({
@@ -35,3 +37,55 @@ export const deletarContrato = async ({
   
 };
 
+export const confirmarExclusao = ({
+  id,
+  pdfUrl,
+  onSuccess,
+}: Props) => {
+
+  Alert.alert(
+    'Excluir contrato',
+    'Deseja realmente excluir este contrato?',
+    [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+
+      {
+        text: 'Excluir',
+        style: 'destructive',
+
+        onPress: async () => {
+
+          try {
+
+            // PDF
+            if (pdfUrl) {
+              await StorageService.deletarPDF(pdfUrl);
+            }
+
+            // Banco
+            await ContratosService.deletarinfodb(id);
+
+            Alert.alert(
+              'Sucesso',
+              'Contrato deletado.'
+            );
+
+            onSuccess?.();
+
+          } catch (error) {
+
+            console.error(error);
+
+            Alert.alert(
+              'Erro',
+              'Não foi possível deletar.'
+            );
+          }
+        },
+      },
+    ]
+  );
+};

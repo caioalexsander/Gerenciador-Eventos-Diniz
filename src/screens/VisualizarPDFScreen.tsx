@@ -1,42 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, Alert, Button, Text } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system/legacy';
+
 import { compartilharPDF } from '../components/pdf/compartilharPDF';
 import { abrirPDF } from '../components/pdf/abrirPDF';
-import { deletarContrato } from '../components/contrato/deletarContrato';
+import { confirmarExclusao } from '../components/contrato/deletarContrato';
 
 export default function VisualizarPDFScreen({ route, navigation }: any) {
   const params = route.params || {};
   const { pdfUrl, contrato } = params;
-
-  const confirmarExclusao = () => {
-
-    Alert.alert(
-      'Deletar contrato',
-      'Deseja realmente excluir?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Deletar',
-          style: 'destructive',
-          onPress: async () => {
-
-            await deletarContrato({
-              id: contrato.id,
-              pdfUrl,
-            });
-
-            navigation.goBack();
-          },
-        },
-      ]
-    );
-  };
 
   const editarContrato = () => {
     if (!contrato || !contrato.id) {
@@ -58,7 +29,7 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
       <Button title="📄 Abrir PDF" onPress={() =>abrirPDF(pdfUrl)} color="#2196F3" />
       <Button title="📤 Compartilhar PDF" onPress={() => compartilharPDF(pdfUrl)} color="#4CAF50" />
       <Button title="✏️ Editar Contrato" onPress={editarContrato} color="#FF9800" />
-      <Button title="🗑️ Deletar Contrato" onPress={confirmarExclusao} color="#ff000d"/>
+      <Button title="🗑️ Deletar Contrato" onPress={ () => confirmarExclusao({ id: contrato.id, pdfUrl, onSuccess: () => navigation.goBack(),})} color="#ff000d"/>
 
       <View style={{ marginTop: 30 }}>
         <Button title="← Voltar" onPress={() => navigation.goBack()} color="#666" />
