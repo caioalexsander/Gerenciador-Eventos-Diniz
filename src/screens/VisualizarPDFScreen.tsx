@@ -1,13 +1,95 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, Alert, Button, Text } from 'react-native';
-
+import * as DocumentPicker from 'expo-document-picker';
 import { compartilharPDF } from '../components/pdf/compartilharPDF';
 import { abrirPDF } from '../components/pdf/abrirPDF';
 import { confirmarExclusao } from '../components/contrato/deletarContrato';
+import { ContratosService } from '../services/contratos.service';
 
 export default function VisualizarPDFScreen({ route, navigation }: any) {
   const params = route.params || {};
   const { pdfUrl, contrato } = params;
+  const [loading, setLoading] = useState(false);
+
+  const handleAssinaturaManual = async () => {
+    try {
+      setLoading(true);
+
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+
+      const pdfSelecionado = result.assets[0];
+
+      Alert.alert(
+        "Assinatura Manual",
+        "Deseja substituir o contrato atual com este PDF assinado?",
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Continuar",
+            onPress: async () => {
+              try {
+                const response = await ContratosService.uploadAssinaturaManual(
+                  contrato.id,
+                  pdfSelecionado,
+                  contrato
+                );
+
+                if (response?.warning) {
+                  Alert.alert(
+                    "⚠️ Atenção",
+                    response.message,
+                    [
+                      { text: "Cancelar", style: "cancel" },
+                      { 
+                        text: "Prosseguir mesmo assim", 
+                        style: "destructive",
+                        onPress: async () => {
+                          // Aqui você pode chamar novamente ou forçar atualização
+                          Alert.alert("Sucesso", "Contrato atualizado com assinatura manual.");
+                          navigation.goBack();
+                        }
+                      }
+                    ]
+                  );
+                } else {
+                  Alert.alert("✅ Sucesso", "Contrato assinado com sucesso!", [
+                    { text: "OK", onPress: () => navigation.goBack() }
+                  ]);
+                }
+              } catch (err: any) {
+                Alert.alert("Erro", "Falha ao processar assinatura manual.");
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível selecionar o arquivo.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const finalizarAssinatura = async (contratoId: string, pdfUri: string) => {
+    try {
+      // Se quiser forçar sem comparação (caso o backend retorne warning)
+      const response = await ContratosService.uploadAssinaturaManual(
+        contratoId,
+        { uri: pdfUri }, // reenvia
+        { pdf_url: '' } // dummy
+      );
+
+      Alert.alert("Sucesso", "Contrato atualizado com sucesso!");
+      navigation.goBack();
+    } catch (e) {
+      Alert.alert("Erro", "Falha ao finalizar assinatura.");
+    }
+  };
 
   const editarContrato = () => {
     if (!contrato || !contrato.id) {
@@ -30,6 +112,7 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
       <Button title="📤 Compartilhar PDF" onPress={() => compartilharPDF(pdfUrl)} color="#4CAF50" />
       <Button title="✏️ Editar Contrato" onPress={editarContrato} color="#FF9800" />
       <Button title="🗑️ Deletar Contrato" onPress={ () => confirmarExclusao({ id: contrato.id, pdfUrl, onSuccess: () => navigation.goBack(),})} color="#ff000d"/>
+      <Button title="Assinatura Manual" onPress={handleAssinaturaManual} disabled={loading} color="#28A745"/>
 
       <View style={{ marginTop: 30 }}>
         <Button title="← Voltar" onPress={() => navigation.goBack()} color="#666" />

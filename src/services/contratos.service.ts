@@ -1,8 +1,51 @@
 import { supabase } from './supabase';
 import api from './api';
 import { FormContrato, ContratoParaEditar } from '../types/contrato.types';
+import { StorageService } from './storage.service';
 
 export class ContratosService {
+    // ====================== ASSINATURA MANUAL ======================
+  static async uploadAssinaturaManual(
+    contratoId: string | number, 
+    pdfFile: any, 
+    contratoAtual: any
+  ) {
+    try {
+      console.log('📄 Iniciando assinatura manual para contrato:', contratoId);
+
+      // ✅ Nome sem pasta (raiz do bucket)
+      const fileName = `${contratoId}_assinado_manual_${Date.now()}.pdf`;
+      
+      const uploadedUrl = await StorageService.uploadFile(pdfFile, fileName);
+
+      const response = await api.put(`/contratos/${contratoId}/assinatura-manual`, {
+        pdf_url: uploadedUrl,
+        original_pdf_url: contratoAtual.pdf_url,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Erro na assinatura manual:', error);
+
+      if (error.response?.status === 409) {
+        return error.response.data;
+      }
+      throw error;
+    }
+  }
+
+  // Função auxiliar (opcional)
+  async atualizarStatusAssinatura(contratoId: string) {
+    try {
+      const response = await api.patch(`/contratos/${contratoId}/status`, {
+        status_assinatura: "assinado"
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      throw error;
+    }
+  }
 
   // ==================== CRIAR NOVO CONTRATO ====================
   static async criarContrato(form: FormContrato) {
