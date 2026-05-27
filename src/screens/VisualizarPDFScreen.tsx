@@ -33,10 +33,10 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
             text: "Continuar",
             onPress: async () => {
               try {
+                // ✅ CHAMADA CORRETA (2 parâmetros)
                 const response = await ContratosService.uploadAssinaturaManual(
                   contrato.id,
-                  pdfSelecionado,
-                  contrato
+                  pdfSelecionado
                 );
 
                 if (response?.warning) {
@@ -48,21 +48,21 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
                       { 
                         text: "Prosseguir mesmo assim", 
                         style: "destructive",
-                        onPress: async () => {
-                          // Aqui você pode chamar novamente ou forçar atualização
-                          Alert.alert("Sucesso", "Contrato atualizado com assinatura manual.");
+                        onPress: () => {
+                          Alert.alert("Sucesso", "Contrato atualizado com assinatura manual!");
                           navigation.goBack();
                         }
                       }
                     ]
                   );
                 } else {
-                  Alert.alert("✅ Sucesso", "Contrato assinado com sucesso!", [
+                  Alert.alert("✅ Sucesso", "Contrato assinado manualmente com sucesso!", [
                     { text: "OK", onPress: () => navigation.goBack() }
                   ]);
                 }
               } catch (err: any) {
-                Alert.alert("Erro", "Falha ao processar assinatura manual.");
+                console.error(err);
+                Alert.alert("Erro", "Falha ao processar a assinatura manual.");
               }
             }
           }
@@ -72,22 +72,6 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
       Alert.alert("Erro", "Não foi possível selecionar o arquivo.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const finalizarAssinatura = async (contratoId: string, pdfUri: string) => {
-    try {
-      // Se quiser forçar sem comparação (caso o backend retorne warning)
-      const response = await ContratosService.uploadAssinaturaManual(
-        contratoId,
-        { uri: pdfUri }, // reenvia
-        { pdf_url: '' } // dummy
-      );
-
-      Alert.alert("Sucesso", "Contrato atualizado com sucesso!");
-      navigation.goBack();
-    } catch (e) {
-      Alert.alert("Erro", "Falha ao finalizar assinatura.");
     }
   };
 
@@ -113,7 +97,7 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
       <Button title="✏️ Editar Contrato" onPress={editarContrato} color="#FF9800" />
       <Button title="🗑️ Deletar Contrato" onPress={ () => confirmarExclusao({ id: contrato.id, pdfUrl, onSuccess: () => navigation.goBack(),})} color="#ff000d"/>
       <Button title="Assinatura Manual" onPress={handleAssinaturaManual} disabled={loading} color="#28A745"/>
-
+      
       <View style={{ marginTop: 30 }}>
         <Button title="← Voltar" onPress={() => navigation.goBack()} color="#666" />
       </View>

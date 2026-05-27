@@ -5,34 +5,41 @@ import { StorageService } from './storage.service';
 
 export class ContratosService {
     // ====================== ASSINATURA MANUAL ======================
-  static async uploadAssinaturaManual(
-    contratoId: string | number, 
-    pdfFile: any, 
-    contratoAtual: any
-  ) {
-    try {
-      console.log('📄 Iniciando assinatura manual para contrato:', contratoId);
+  static async uploadAssinaturaManual(contratoId: string | number, pdfFile: any) {
+  try {
+    console.log('📄 Iniciando assinatura manual para contrato:', contratoId);
 
-      // ✅ Nome sem pasta (raiz do bucket)
-      const fileName = `${contratoId}_assinado_manual_${Date.now()}.pdf`;
-      
-      const uploadedUrl = await StorageService.uploadFile(pdfFile, fileName);
+    const fileName = `${contratoId}_assinado_manual_${Date.now()}.pdf`;
+    
+    const uploadedUrl = await StorageService.uploadFile(pdfFile, fileName);
 
-      const response = await api.put(`/contratos/${contratoId}/assinatura-manual`, {
-        pdf_url: uploadedUrl,
-        original_pdf_url: contratoAtual.pdf_url,
-      });
+    console.log('📤 URL enviada para backend:', uploadedUrl);
 
-      return response.data;
-    } catch (error: any) {
-      console.error('❌ Erro na assinatura manual:', error);
+    const response = await api.put(`/contratos/${contratoId}/assinatura-manual`, {
+      pdf_url: uploadedUrl,
+    });
 
-      if (error.response?.status === 409) {
-        return error.response.data;
-      }
+    console.log('✅ Resposta do backend:', response.data);
+    return response.data;
+
+  } catch (error: any) {
+    console.error('❌ Erro completo na assinatura manual:', error);
+    
+    if (error.response) {
+      // Erro com resposta do servidor (409, 500, etc)
+      console.error('Status:', error.response.status);
+      console.error('Dados:', error.response.data);
+      return error.response.data;
+    } else if (error.request) {
+      // Erro de rede (sem resposta)
+      console.error('❌ Network Error - Sem resposta do servidor');
+      throw new Error('Não foi possível conectar ao servidor. Verifique sua internet.');
+    } else {
+      console.error('Erro desconhecido:', error.message);
       throw error;
     }
   }
+}
 
   // Função auxiliar (opcional)
   async atualizarStatusAssinatura(contratoId: string) {
