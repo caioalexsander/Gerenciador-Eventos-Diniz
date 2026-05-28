@@ -96,7 +96,7 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
       <Button title="📤 Compartilhar PDF" onPress={() => compartilharPDF(pdfUrl)} color="#4CAF50" />
       <Button title="✏️ Editar Contrato" onPress={editarContrato} color="#FF9800" />
       <Button title="🗑️ Deletar Contrato" onPress={ () => confirmarExclusao({ id: contrato.id, pdfUrl, onSuccess: () => navigation.goBack(),})} color="#ff000d"/>
-      <Button title="Assinatura Manual" onPress={handleAssinaturaManual} disabled={loading} color="#28A745"/>
+      <Button title="Assinatura Manual" onPress={handleAssinaturaManual} color="#28A745"/>
       
       <View style={{ marginTop: 30 }}>
         <Button title="← Voltar" onPress={() => navigation.goBack()} color="#666" />
