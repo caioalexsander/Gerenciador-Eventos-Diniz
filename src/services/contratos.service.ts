@@ -42,7 +42,7 @@ export class ContratosService {
 }
 
   // Função auxiliar (opcional)
-  async atualizarStatusAssinatura(contratoId: string) {
+  static async atualizarStatusAssinatura(contratoId: string) {
     try {
       const response = await api.patch(`/contratos/${contratoId}/status`, {
         status_assinatura: "assinado"
@@ -53,6 +53,18 @@ export class ContratosService {
       throw error;
     }
   }
+  
+  // ==================== ASSINATURA DIGITAL ====================
+
+  static async gerarLinkAssinaturaDigital(contratoId: string)  {
+    try {
+      const response = await api.post(`/contratos/${contratoId}/gerar-link-assinatura`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao gerar link de assinatura:', error);
+      throw error.response?.data || error;
+    }
+  };
 
   // ==================== CRIAR NOVO CONTRATO ====================
   static async criarContrato(form: FormContrato) {

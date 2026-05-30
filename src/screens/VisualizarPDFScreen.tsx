@@ -5,6 +5,7 @@ import { compartilharPDF } from '../components/pdf/compartilharPDF';
 import { abrirPDF } from '../components/pdf/abrirPDF';
 import { confirmarExclusao } from '../components/contrato/deletarContrato';
 import { ContratosService } from '../services/contratos.service';
+import { AssinaturaDigitalButton } from '../components/contrato/AssinaturaDigitalButton';
 
 export default function VisualizarPDFScreen({ route, navigation }: any) {
   const params = route.params || {};
@@ -97,9 +98,13 @@ export default function VisualizarPDFScreen({ route, navigation }: any) {
       <Button title="✏️ Editar Contrato" onPress={editarContrato} color="#FF9800" />
       <Button title="🗑️ Deletar Contrato" onPress={ () => confirmarExclusao({ id: contrato.id, pdfUrl, onSuccess: () => navigation.goBack(),})} color="#ff000d"/>
       <Button title="Assinatura Manual" onPress={handleAssinaturaManual} color="#28A745"/>
-      
+      <AssinaturaDigitalButton
+        contratoId={contrato?.id}
+        statusAssinatura={contrato?.status_assinatura}
+        onAssinaturaConcluida={() => navigation.goBack()}
+      />
       <View style={{ marginTop: 30 }}>
-        <Button title="← Voltar" onPress={() => navigation.goBack()} color="#666" />
+      <Button title="← Voltar" onPress={() => navigation.goBack()} color="#666" />
       </View>
     </View>
   );
