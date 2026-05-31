@@ -61,8 +61,12 @@ export class ContratosService {
       const response = await api.post(`/contratos/${contratoId}/gerar-link-assinatura`);
       return response.data;
     } catch (error: any) {
-      console.error('Erro ao gerar link de assinatura:', error);
-      throw error.response?.data || error;
+      console.error('Erro ao gerar link:', error);
+
+      throw new Error(
+        error.response?.data?.error ||
+        'Erro ao gerar assinatura digital'
+      );
     }
   };
 
