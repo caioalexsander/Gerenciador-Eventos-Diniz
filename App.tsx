@@ -1,14 +1,13 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import NovoContratoScreen from './src/screens/contratos/NovoContratoScreen';
-import VisualizarPDFScreen from './src/screens/VisualizarPDFScreen';
 import MeusContratosScreen from './src/screens/MeusContratosScreen';
 import CardapioScreen from './src/screens/CardapioScreen';
 import ConfiguracaoClausulaContratoScreen from './src/screens/ConfiguracaoClausulaContratoScreen';
+import OpcoesLayoutScreen from './src/screens/OpcoesLayoutScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,7 +37,7 @@ export default function App() {
         />
         <Stack.Screen 
           name="VisualizarPDF" 
-          component={VisualizarPDFScreen} 
+          component={OpcoesLayoutScreen} 
           options={{ title: 'Visualizar Contrato' }} 
         />
         <Stack.Screen 

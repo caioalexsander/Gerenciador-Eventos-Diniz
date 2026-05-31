@@ -1,11 +1,10 @@
 import { Alert, Platform } from 'react-native';
-
 import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
-
 import { downloadPDF } from './downloadPDF';
 
 export const abrirPDF = async (url: string) => {
+  
   try {
     if (!url) {
       Alert.alert('Erro', 'PDF não encontrado.');
