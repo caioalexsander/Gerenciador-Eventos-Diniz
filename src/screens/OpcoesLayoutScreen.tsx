@@ -97,6 +97,17 @@ export default function OpcoesLayoutScreen({ route, navigation }: any) {
     });
   };
 
+  const handleVisualizarContrato = () => {
+    if (!contrato?.id) {
+      Alert.alert('Erro', 'Dados do contrato não encontrados.');
+      return;
+    }
+
+    navigation.navigate('VisualizarContrato', { 
+      contratoId: contrato.id 
+    });
+  };
+
   return (
     <ImageBackground 
       source={require('../../assets/logo-fundo.png')} 
@@ -117,6 +128,11 @@ export default function OpcoesLayoutScreen({ route, navigation }: any) {
             <Text style={styles.cardText}>Visualizar PDF</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity style={styles.card} onPress={handleVisualizarContrato}>
+            <Text style={styles.icon}>📄</Text>
+            <Text style={styles.cardText}>Ver Info Contrato</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.card} onPress={handleCompartilhar}>
             <Text style={styles.icon}>📤</Text>
             <Text style={styles.cardText}>Compartilhar</Text>
@@ -131,7 +147,7 @@ export default function OpcoesLayoutScreen({ route, navigation }: any) {
             <Text style={styles.icon}>🗑️</Text>
             <Text style={styles.cardText}>Deletar</Text>
           </TouchableOpacity>
-
+          
           <TouchableOpacity 
             style={[styles.card, loading && styles.cardDisabled]} 
             onPress={handleAssinaturaManual}
