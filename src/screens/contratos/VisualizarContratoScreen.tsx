@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useContratoVisualizar } from '../../hooks/useContratoVisualizar';
-import { formatarData } from '../../utils/formatadores/data';
+import { formatarDataVisualizar } from '../../utils/formatadores/dataVisualizar';
 import { formatarMoeda } from '../../utils/formatadores/moeda';
 
 type VisualizarContratoScreenRouteProp = RouteProp<
@@ -16,9 +16,16 @@ export default function VisualizarContratoScreen() {
 
   const { contrato, loading, error } = useContratoVisualizar(contratoId);
 
-  if (loading) return <Text style={styles.loading}>Carregando informações do contrato...</Text>;
+  if (loading) return <Text style={styles.loading}>Carregando informações...</Text>;
   if (error) return <Text style={styles.error}>Erro: {error}</Text>;
   if (!contrato) return <Text>Contrato não encontrado.</Text>;
+
+  // Preparar cardápio selecionado para exibição
+  const cardapioSelecionado = contrato.cardapio_selecionado 
+    ? (typeof contrato.cardapio_selecionado === 'string' 
+        ? JSON.parse(contrato.cardapio_selecionado) 
+        : contrato.cardapio_selecionado)
+    : null;
 
   return (
     <ScrollView style={styles.container}>
@@ -29,13 +36,33 @@ export default function VisualizarContratoScreen() {
         <InfoRow label="Contratante" value={contrato.nome_contratante || '—'} />
         <InfoRow label="CPF" value={contrato.cpf_contratante || '—'} />
         <InfoRow label="Residência" value={contrato.residencia_contratante || '—'} />
-        <InfoRow label="Data do Evento" value={formatarData(contrato.data_evento)} />
+        <InfoRow label="Data do Evento" value={contrato.data_evento} />
         <InfoRow label="Horário Início" value={contrato.hora_inicio || '—'} />
         <InfoRow label="Horário Fim" value={contrato.hora_fim || '—'} />
+        <InfoRow label="Duraçao" value={contrato.duracao || '—'} />
         <InfoRow label="Local" value={contrato.local_evento || '—'} />
         <InfoRow label="Tipo de Evento" value={contrato.tipo_evento || '—'} />
         <InfoRow label="Nº Convidados" value={contrato.num_convidados?.toString() || '—'} />
+        <InfoRow label="Preço Por Convidados" value={formatarMoeda(Number(contrato.preco_por_convidado) || 0)} />
         <InfoRow label="Preço Total" value={formatarMoeda(Number(contrato.preco_total) || 0)} />
+
+        {/* ==================== CARDÁPIO SELECIONADO ==================== */}
+        <View style={styles.cardapioSection}>
+          <Text style={styles.subtitulo}>Cardápio Selecionado</Text>
+          
+          {cardapioSelecionado && Array.isArray(cardapioSelecionado) && cardapioSelecionado.length > 0 ? (
+            cardapioSelecionado.map((item: any, index: number) => (
+              <View key={index} style={styles.cardapioItem}>
+                <Text style={styles.itemNome}>
+                  • {item.nome || item.item || 'Item sem nome'}
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.semCardapio}>Nenhum cardápio selecionado.</Text>
+          )}
+        </View>
+
         <InfoRow label="Observações" value={contrato.observacoes || '—'} />
       </View>
     </ScrollView>
@@ -63,6 +90,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  subtitulo: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 12,
+    color: '#333',
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -72,6 +106,16 @@ const styles = StyleSheet.create({
   },
   label: { fontWeight: '600', color: '#555', flex: 1 },
   value: { flex: 1, textAlign: 'right', color: '#333' },
+  cardapioSection: { marginTop: 10 },
+  cardapioItem: {
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  itemNome: { fontWeight: '600', fontSize: 16 },
+  itemDetalhe: { color: '#666', marginTop: 4 },
+  semCardapio: { fontStyle: 'italic', color: '#999', textAlign: 'center', padding: 10 },
   loading: { flex: 1, textAlign: 'center', marginTop: 50, fontSize: 16 },
   error: { flex: 1, textAlign: 'center', marginTop: 50, color: 'red', fontSize: 16 },
 });

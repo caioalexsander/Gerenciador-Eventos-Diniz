@@ -44,6 +44,16 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={styles.cardText}>Clausula Contrato</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity style={styles.card} onPress={() => Alert.alert('Em breve', 'calendario será implementado')}>
+            <Text style={styles.icon}>📊</Text>
+            <Text style={styles.cardText}>Calendario</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.card} onPress={() => Alert.alert('Em breve', 'alarme será implementado')}>
+            <Text style={styles.icon}>📊</Text>
+            <Text style={styles.cardText}>Config Alarme</Text>
+          </TouchableOpacity>
+
         </View>
       </ScrollView>
     </ImageBackground>
