@@ -22,7 +22,7 @@ export default function NovoContratoScreen({ navigation, route }: any) {
   } = useContrato(route, navigation);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <NovoContratoHeader isEditing={isEditing} />
 
       <ContratoFormFields 
@@ -65,6 +65,10 @@ const styles = StyleSheet.create({
     flex: 1, 
     padding: 16, 
     backgroundColor: '#f9f9f9' 
+  },
+  contentContainer: { 
+    padding: 16,           // espaçamento lateral e superior
+    paddingBottom: 80,     // ← ESPAÇO EXTRA NO FINAL (aqui você controla)
   },
   button: {
     backgroundColor: '#4CAF50',

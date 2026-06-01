@@ -20,15 +20,27 @@ export default function VisualizarContratoScreen() {
   if (error) return <Text style={styles.error}>Erro: {error}</Text>;
   if (!contrato) return <Text>Contrato não encontrado.</Text>;
 
-  // Preparar cardápio selecionado para exibição
-  const cardapioSelecionado = contrato.cardapio_selecionado 
-    ? (typeof contrato.cardapio_selecionado === 'string' 
-        ? JSON.parse(contrato.cardapio_selecionado) 
-        : contrato.cardapio_selecionado)
-    : null;
+  // === Preparar Cardápio ===
+  let cardapioSelecionado: any[] = [];
+  let rawData = contrato.cardapio_selecionado;
+
+  if (rawData) {
+    try {
+      cardapioSelecionado = typeof rawData === 'string' 
+        ? JSON.parse(rawData) 
+        : Array.isArray(rawData) 
+          ? rawData 
+          : [];
+    } catch (e) {
+      console.error('Erro ao parsear cardapio_selecionado:', e);
+    }
+  }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}   // ← Adicionado aqui
+    >
       <View style={styles.card}>
         <Text style={styles.titulo}>Informações do Contrato</Text>
 
@@ -36,7 +48,7 @@ export default function VisualizarContratoScreen() {
         <InfoRow label="Contratante" value={contrato.nome_contratante || '—'} />
         <InfoRow label="CPF" value={contrato.cpf_contratante || '—'} />
         <InfoRow label="Residência" value={contrato.residencia_contratante || '—'} />
-        <InfoRow label="Data do Evento" value={contrato.data_evento} />
+        <InfoRow label="Data do Evento" value={formatarDataVisualizar(contrato.data_evento)} />
         <InfoRow label="Horário Início" value={contrato.hora_inicio || '—'} />
         <InfoRow label="Horário Fim" value={contrato.hora_fim || '—'} />
         <InfoRow label="Duraçao" value={contrato.duracao || '—'} />
@@ -46,24 +58,23 @@ export default function VisualizarContratoScreen() {
         <InfoRow label="Preço Por Convidados" value={formatarMoeda(Number(contrato.preco_por_convidado) || 0)} />
         <InfoRow label="Preço Total" value={formatarMoeda(Number(contrato.preco_total) || 0)} />
 
-        {/* ==================== CARDÁPIO SELECIONADO ==================== */}
+        {/* CARDÁPIO SELECIONADO */}
         <View style={styles.cardapioSection}>
           <Text style={styles.subtitulo}>Cardápio Selecionado</Text>
-          
-          {cardapioSelecionado && Array.isArray(cardapioSelecionado) && cardapioSelecionado.length > 0 ? (
-            cardapioSelecionado.map((item: any, index: number) => (
-              <View key={index} style={styles.cardapioItem}>
-                <Text style={styles.itemNome}>
-                  • {item.nome || item.item || 'Item sem nome'}
-                </Text>
-              </View>
-            ))
+
+          {cardapioSelecionado.length > 0 ? (
+            cardapioSelecionado.map((item: any, index: number) => {
+              const nomeItem = item.nome || JSON.stringify(item).slice(0, 60);
+              return (
+                <View key={index} style={styles.cardapioItem}>
+                  <Text style={styles.itemNome}>• {nomeItem}</Text>          
+                </View>
+              );
+            })
           ) : (
             <Text style={styles.semCardapio}>Nenhum cardápio selecionado.</Text>
           )}
         </View>
-
-        <InfoRow label="Observações" value={contrato.observacoes || '—'} />
       </View>
     </ScrollView>
   );
@@ -77,45 +88,51 @@ const InfoRow = ({ label, value }: { label: string; value: string | number }) =>
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', padding: 16 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    elevation: 3,
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f5f5f5' 
   },
-  titulo: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+  contentContainer: {   // ← Novo estilo adicionado
+    padding: 16,
+    paddingBottom: 80,   // ← Espaço extra no final da tela
   },
-  subtitulo: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 12,
-    color: '#333',
+  card: { 
+    backgroundColor: '#fff', 
+    borderRadius: 12, 
+    padding: 20, 
+    elevation: 3 
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+  titulo: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    marginBottom: 20, 
+    textAlign: 'center' 
+  },
+  subtitulo: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    marginTop: 25, 
+    marginBottom: 12 
+  },
+  row: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    paddingVertical: 12, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#eee' 
   },
   label: { fontWeight: '600', color: '#555', flex: 1 },
   value: { flex: 1, textAlign: 'right', color: '#333' },
-  cardapioSection: { marginTop: 10 },
-  cardapioItem: {
-    backgroundColor: '#f9f9f9',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+
+  cardapioSection: { marginTop: 15 },
+  cardapioItem: { 
+    backgroundColor: '#f9f9f9', 
+    padding: 12, 
+    borderRadius: 8, 
+    marginBottom: 10 
   },
-  itemNome: { fontWeight: '600', fontSize: 16 },
-  itemDetalhe: { color: '#666', marginTop: 4 },
-  semCardapio: { fontStyle: 'italic', color: '#999', textAlign: 'center', padding: 10 },
-  loading: { flex: 1, textAlign: 'center', marginTop: 50, fontSize: 16 },
-  error: { flex: 1, textAlign: 'center', marginTop: 50, color: 'red', fontSize: 16 },
+  itemNome: { fontWeight: 'bold', fontSize: 16, marginBottom: 6 },
+  semCardapio: { fontStyle: 'italic', color: '#999', textAlign: 'center' },
+  loading: { flex: 1, textAlign: 'center', marginTop: 50 },
+  error: { flex: 1, textAlign: 'center', marginTop: 50, color: 'red' },
 });
