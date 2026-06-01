@@ -48,7 +48,7 @@ export default function VisualizarContratoScreen() {
         <InfoRow label="Contratante" value={contrato.nome_contratante || '—'} />
         <InfoRow label="CPF" value={contrato.cpf_contratante || '—'} />
         <InfoRow label="Residência" value={contrato.residencia_contratante || '—'} />
-        <InfoRow label="Data do Evento" value={formatarDataVisualizar(contrato.data_evento)} />
+        <InfoRow label="Data do Evento" value={contrato.data_evento} />
         <InfoRow label="Horário Início" value={contrato.hora_inicio || '—'} />
         <InfoRow label="Horário Fim" value={contrato.hora_fim || '—'} />
         <InfoRow label="Duraçao" value={contrato.duracao || '—'} />
