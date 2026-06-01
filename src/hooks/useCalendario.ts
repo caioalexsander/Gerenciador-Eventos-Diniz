@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ContratosService } from '../services/contratos.service'; // reutilizando service existente
+import { ContratosService } from '../services/contratos.service'; // Import corrigido
 import { EventoCalendario } from '../types/calendario.types';
 
 export const useCalendario = () => {
@@ -8,20 +8,19 @@ export const useCalendario = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
 
-  // Busca todos os contratos e agrupa por data_evento
   const fetchEventosCalendario = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const contratos = await ContratosService.listarTodos(); // reutilizando método existente
+      // ✅ Método correto existente no seu service
+      const contratos = await ContratosService.listarContratos();
 
       const agrupados: Record<string, EventoCalendario[]> = {};
 
       contratos.forEach((contrato: any) => {
         if (contrato.data_evento) {
-          // Extrai apenas a data (YYYY-MM-DD)
-          const data = contrato.data_evento.split('T')[0];
+          const data = contrato.data_evento.split('T')[0]; // YYYY-MM-DD
 
           if (!agrupados[data]) {
             agrupados[data] = [];
@@ -32,7 +31,7 @@ export const useCalendario = () => {
             data_evento: data,
             hora_inicio: contrato.hora_inicio,
             hora_fim: contrato.hora_fim,
-            tipo_evento: contrato.tipo_evento,
+            tipo_evento: contrato.tipo_evento || 'Evento',
             nome_contratante: contrato.nome_contratante,
           });
         }
@@ -47,12 +46,10 @@ export const useCalendario = () => {
     }
   }, []);
 
-  // Retorna apenas eventos de uma data específica
   const getEventosByDate = useCallback((date: string): EventoCalendario[] => {
     return eventosPorDia[date] || [];
   }, [eventosPorDia]);
 
-  // Eventos futuros (para alarmes)
   const getEventosFuturos = useCallback((): EventoCalendario[] => {
     const hoje = new Date().toISOString().split('T')[0];
     return Object.keys(eventosPorDia)
@@ -60,15 +57,11 @@ export const useCalendario = () => {
       .flatMap(data => eventosPorDia[data]);
   }, [eventosPorDia]);
 
-  // Marcação para o calendário (react-native-calendars)
   const getMarkedDates = useCallback(() => {
     const marked: any = {};
 
     Object.keys(eventosPorDia).forEach(date => {
-      marked[date] = {
-        marked: true,
-        dotColor: '#f59e0b',
-      };
+      marked[date] = { marked: true, dotColor: '#f59e0b' };
     });
 
     if (selectedDate && eventosPorDia[selectedDate]) {
