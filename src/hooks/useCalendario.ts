@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ContratosService } from '../services/contratos.service'; // Import corrigido
+import { ContratosService } from '../services/contratos.service';
 import { EventoCalendario } from '../types/calendario.types';
 
 export const useCalendario = () => {
@@ -13,33 +13,46 @@ export const useCalendario = () => {
     setError(null);
 
     try {
-      // ✅ Método correto existente no seu service
       const contratos = await ContratosService.listarContratos();
+      console.log(`📅 Carregados ${contratos.length} contratos`);
 
       const agrupados: Record<string, EventoCalendario[]> = {};
 
       contratos.forEach((contrato: any) => {
-        if (contrato.data_evento) {
-          const data = contrato.data_evento.split('T')[0]; // YYYY-MM-DD
+        let dataOriginal = contrato.data_evento;
 
-          if (!agrupados[data]) {
-            agrupados[data] = [];
+        if (dataOriginal) {
+          let dataFormatada = '';
+
+          if (dataOriginal.includes('T')) {
+            dataFormatada = dataOriginal.split('T')[0];           // YYYY-MM-DD
+          } else if (dataOriginal.includes('/')) {
+            // Converte DD/MM/YYYY → YYYY-MM-DD
+            const [dia, mes, ano] = dataOriginal.split('/');
+            dataFormatada = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+          } else {
+            dataFormatada = dataOriginal;
           }
 
-          agrupados[data].push({
-            id: contrato.id,
-            data_evento: data,
-            hora_inicio: contrato.hora_inicio,
-            hora_fim: contrato.hora_fim,
-            tipo_evento: contrato.tipo_evento || 'Evento',
-            nome_contratante: contrato.nome_contratante,
-          });
+          if (dataFormatada.length === 10) {
+            if (!agrupados[dataFormatada]) agrupados[dataFormatada] = [];
+
+            agrupados[dataFormatada].push({
+              id: contrato.id,
+              data_evento: dataFormatada,
+              hora_inicio: contrato.hora_inicio,
+              hora_fim: contrato.hora_fim,
+              tipo_evento: contrato.tipo_evento || 'Evento',
+              nome_contratante: contrato.nome_contratante,
+            });
+          }
         }
       });
 
+      console.log('📍 Datas normalizadas (YYYY-MM-DD):', Object.keys(agrupados));
       setEventosPorDia(agrupados);
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar eventos do calendário');
+      setError(err.message || 'Erro ao carregar calendário');
       console.error('Erro no useCalendario:', err);
     } finally {
       setLoading(false);
@@ -61,10 +74,13 @@ export const useCalendario = () => {
     const marked: any = {};
 
     Object.keys(eventosPorDia).forEach(date => {
-      marked[date] = { marked: true, dotColor: '#f59e0b' };
+      marked[date] = { 
+        marked: true, 
+        dotColor: '#f59e0b' 
+      };
     });
 
-    if (selectedDate && eventosPorDia[selectedDate]) {
+    if (selectedDate) {
       marked[selectedDate] = {
         ...marked[selectedDate],
         selected: true,
@@ -80,7 +96,6 @@ export const useCalendario = () => {
   }, [fetchEventosCalendario]);
 
   return {
-    eventosPorDia,
     loading,
     error,
     selectedDate,
@@ -89,5 +104,6 @@ export const useCalendario = () => {
     getEventosByDate,
     getEventosFuturos,
     getMarkedDates,
+    eventosPorDia,
   };
 };
