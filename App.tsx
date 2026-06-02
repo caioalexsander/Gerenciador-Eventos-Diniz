@@ -9,7 +9,7 @@ import CardapioScreen from './src/screens/CardapioScreen';
 import ConfiguracaoClausulaContratoScreen from './src/screens/ConfiguracaoClausulaContratoScreen';
 import OpcoesLayoutScreen from './src/screens/OpcoesLayoutScreen';
 import VisualizarContratoScreen from './src/screens/contratos/VisualizarContratoScreen'
-
+import CalendarioEventosScreen from './src/screens/calendario/CalendarioEventosScreen'
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -54,6 +54,11 @@ export default function App() {
         <Stack.Screen 
           name="VisualizarContrato" 
           component={VisualizarContratoScreen} 
+          options={{ title: 'ver Contrato' }} 
+        />
+        <Stack.Screen 
+          name="CalendarioEventos" 
+          component={CalendarioEventosScreen} 
           options={{ title: 'ver Contrato' }} 
         />
       </Stack.Navigator>

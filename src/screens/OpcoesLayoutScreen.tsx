@@ -129,7 +129,7 @@ export default function OpcoesLayoutScreen({ route, navigation }: any) {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.card} onPress={handleVisualizarContrato}>
-            <Text style={styles.icon}>📄</Text>
+            <Text style={styles.icon}>📜</Text>
             <Text style={styles.cardText}>Ver Info Contrato</Text>
           </TouchableOpacity>
 
