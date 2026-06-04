@@ -64,7 +64,7 @@ export default function App() {
           options={{ title: 'Calendario' }} 
         />
         <Stack.Screen 
-          name="ListaEventosDia"
+          name="ListaEventosDiaScreen"
           component={ListaEventosDiaScreen}
           options={{ title: 'Lista Eventos'}}
         />

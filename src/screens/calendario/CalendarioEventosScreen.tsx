@@ -21,17 +21,19 @@ const CalendarioEventosScreen = () => {
   const eventosDoDia = getEventosByDate(selectedDate);
 
   const handleDayPress = (dateString: string) => {
-    const eventos = getEventosByDate(dateString);
-    
-    if (eventos.length > 0) {
-      navigation.navigate('ListaEventosDia', {
-        date: dateString,
-        eventos: eventos,   // ← Corrigido
-      } as any);            // ← Força o TypeScript a aceitar
-    } else {
-      setSelectedDate(dateString);
-    }
-  };
+  const eventos = getEventosByDate(dateString);
+  
+  if (eventos.length > 0) {
+    navigation.navigate('ListaEventosDiaScreen', {
+      date: dateString,
+      eventos: eventos,
+    });
+  } else {
+    // Opcional: mostrar feedback
+    Alert.alert('Sem eventos', `Nenhum evento marcado para ${formatarDataExibicao(dateString)}`);
+    setSelectedDate(dateString);
+  }
+};
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
