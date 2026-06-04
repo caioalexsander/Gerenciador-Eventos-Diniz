@@ -39,7 +39,7 @@ export default function App() {
         <Stack.Screen 
           name="VisualizarPDF" 
           component={OpcoesLayoutScreen} 
-          options={{ title: 'Visualizar Contrato' }} 
+          options={{ title: 'Opçoes Do Contrato' }} 
         />
         <Stack.Screen 
           name="Cardapio" 
@@ -54,12 +54,12 @@ export default function App() {
         <Stack.Screen 
           name="VisualizarContrato" 
           component={VisualizarContratoScreen} 
-          options={{ title: 'ver Contrato' }} 
+          options={{ title: 'Ver Info Contrato' }} 
         />
         <Stack.Screen 
           name="CalendarioEventos" 
           component={CalendarioEventosScreen} 
-          options={{ title: 'ver Contrato' }} 
+          options={{ title: 'Calendario' }} 
         />
       </Stack.Navigator>
     </NavigationContainer>
