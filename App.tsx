@@ -10,6 +10,8 @@ import ConfiguracaoClausulaContratoScreen from './src/screens/ConfiguracaoClausu
 import OpcoesLayoutScreen from './src/screens/OpcoesLayoutScreen';
 import VisualizarContratoScreen from './src/screens/contratos/VisualizarContratoScreen'
 import CalendarioEventosScreen from './src/screens/calendario/CalendarioEventosScreen'
+import ListaEventosDiaScreen from './src/screens/calendario/ListaEventosDiaScreen';
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -61,6 +63,12 @@ export default function App() {
           component={CalendarioEventosScreen} 
           options={{ title: 'Calendario' }} 
         />
+        <Stack.Screen 
+          name="ListaEventosDia"
+          component={ListaEventosDiaScreen}
+          options={{ title: 'Lista Eventos'}}
+        />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
