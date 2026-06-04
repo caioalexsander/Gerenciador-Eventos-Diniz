@@ -46,7 +46,7 @@ const CalendarioEventosScreen = () => {
         horizontal={true}
         pagingEnabled={true}
         calendarWidth={width}
-        onDayPress={(day) => setSelectedDate(day.dateString)}
+        onDayPress={(day) => handleDayPress(day.dateString)}
         markedDates={getMarkedDates()}
         dayComponent={({ date, state }: any) => {
           const eventos = getEventosByDate(date?.dateString || '');
@@ -55,7 +55,7 @@ const CalendarioEventosScreen = () => {
 
           return (
             <TouchableOpacity
-              onPress={() => setSelectedDate(date?.dateString || '')}
+              onPress={() => handleDayPress(date?.dateString || '')}
               style={{
                 //flex: 1,
                 minHeight: 100,
