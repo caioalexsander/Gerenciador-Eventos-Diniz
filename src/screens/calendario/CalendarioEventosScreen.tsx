@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { CalendarList } from 'react-native-calendars';
 import { useCalendario } from '../../hooks/useCalendario';
@@ -6,6 +6,7 @@ import { EventoCalendario } from '../../types/calendario.types';
 import { formatarDataExibicao } from '../../utils/formatadores/display';
 import { formatarHoraExibicao } from '../../utils/formatadores/display';
 import { useNavigation } from '@react-navigation/native';
+import { useNotificacoes } from '../../hooks/useNotificacoes';
 
 const { width } = Dimensions.get('window');
 
@@ -16,13 +17,15 @@ const CalendarioEventosScreen = () => {
     setSelectedDate,
     getEventosByDate,
     getMarkedDates,
+    eventosPorDia,
   } = useCalendario();
-
+  
+  const { agendarTodosAlarmes } = useNotificacoes();
   const eventosDoDia = getEventosByDate(selectedDate);
-
   const handleDayPress = (dateString: string) => {
   const eventos = getEventosByDate(dateString);
   
+
   if (eventos.length > 0) {
     navigation.navigate('ListaEventosDiaScreen', {
       date: dateString,
@@ -34,6 +37,13 @@ const CalendarioEventosScreen = () => {
     setSelectedDate(dateString);
   }
 };
+  
+  useEffect(() => {
+    const todosEventos = Object.values(eventosPorDia).flat();
+    if (todosEventos.length > 0) {
+      agendarTodosAlarmes(todosEventos);
+    }
+  }, [eventosPorDia, agendarTodosAlarmes]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
@@ -109,7 +119,7 @@ const CalendarioEventosScreen = () => {
                         fontWeight: '500',
                       }}
                     >
-                      {evento.tipo_evento}
+                     📍{evento.tipo_evento}
                     </Text>
                   </View>
                 ))}

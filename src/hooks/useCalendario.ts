@@ -7,18 +7,23 @@ export const useCalendario = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
-
+  
   const fetchEventosCalendario = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
       const contratos = await ContratosService.listarContratos();
-      console.log(`📅 Carregados ${contratos.length} contratos`);
+      //console.log(`📅 Carregados ${contratos.length} contratos`);
 
       const agrupados: Record<string, EventoCalendario[]> = {};
 
       contratos.forEach((contrato: any) => {
+        // Filtra contratos finalizados
+        if (contrato.status?.toLowerCase() === 'finalizado') {
+          return;
+        }
+
         let dataOriginal = contrato.data_evento;
 
         if (dataOriginal) {
@@ -45,13 +50,15 @@ export const useCalendario = () => {
               tipo_evento: contrato.tipo_evento || 'Evento',
               nome_contratante: contrato.nome_contratante,
               pdf_url: contrato.pdf_url || contrato.url_pdf || null,
+              status: contrato.status,
             });
           }
         }
       });
 
-      console.log('📍 Datas normalizadas (YYYY-MM-DD):', Object.keys(agrupados));
+      //console.log('📍 Datas normalizadas (YYYY-MM-DD):', Object.keys(agrupados));
       setEventosPorDia(agrupados);
+
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar calendário');
       console.error('Erro no useCalendario:', err);
@@ -68,7 +75,8 @@ export const useCalendario = () => {
     const hoje = new Date().toISOString().split('T')[0];
     return Object.keys(eventosPorDia)
       .filter(data => data >= hoje)
-      .flatMap(data => eventosPorDia[data]);
+      .flatMap(data => eventosPorDia[data])
+      .filter(evento => evento.status?.toLowerCase() !== 'finalizado');
   }, [eventosPorDia]);
 
   const getMarkedDates = useCallback(() => {
@@ -93,6 +101,7 @@ export const useCalendario = () => {
   }, [eventosPorDia, selectedDate]);
 
   useEffect(() => {
+    
     fetchEventosCalendario();
   }, [fetchEventosCalendario]);
 

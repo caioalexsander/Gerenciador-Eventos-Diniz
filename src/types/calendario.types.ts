@@ -6,5 +6,6 @@ export interface EventoCalendario {
   tipo_evento: string;
   nome_contratante: string;
   pdf_url?: string | null;
+  status?: string;
   // outros campos que quiser
 }
