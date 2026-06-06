@@ -41,7 +41,8 @@ const ListaEventosDiaScreen = () => {
             onPress={() => {
               // Navega para OpcoesLayoutScreen passando o ID
               navigation.navigate('VisualizarPDF', { 
-               contratoId: evento.id
+               contratoId: evento.id,
+               pdfUrl: evento.pdf_url,
               });
             }}
           >

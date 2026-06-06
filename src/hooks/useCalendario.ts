@@ -44,6 +44,7 @@ export const useCalendario = () => {
               hora_fim: contrato.hora_fim,
               tipo_evento: contrato.tipo_evento || 'Evento',
               nome_contratante: contrato.nome_contratante,
+              pdf_url: contrato.pdf_url || contrato.url_pdf || null,
             });
           }
         }
