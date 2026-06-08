@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9f9f9', padding: 15 },
   btnAtualizar: { backgroundColor: '#2196F3', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 15 },
   btnText: { color: '#fff', fontWeight: 'bold' },
-  list: { paddingBottom: 20 },
+  list: { paddingBottom: 80 },
   card: {
     backgroundColor: '#fff',
     padding: 15,

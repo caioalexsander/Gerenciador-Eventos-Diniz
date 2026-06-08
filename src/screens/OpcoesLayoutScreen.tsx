@@ -114,7 +114,7 @@ export default function OpcoesLayoutScreen({ route, navigation }: any) {
       style={styles.background}
       imageStyle={styles.backgroundImage}   // ← Ajuste aqui
     >
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
           <Text style={styles.title}>Opções do Contrato</Text>
           <Text style={styles.subtitle}>
@@ -146,6 +146,11 @@ export default function OpcoesLayoutScreen({ route, navigation }: any) {
           <TouchableOpacity style={styles.card} onPress={deletarContrato}>
             <Text style={styles.icon}>🗑️</Text>
             <Text style={styles.cardText}>Deletar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.card} onPress={() => Alert.alert('Em breve', 'pagamento será implementado')}>
+            <Text style={styles.icon}>💰</Text>
+            <Text style={styles.cardText}>Pagamento</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -191,6 +196,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.93)',
+  },
+  contentContainer: { 
+    padding: 16,           // espaçamento lateral e superior
+    paddingBottom: 80,     // ← ESPAÇO EXTRA NO FINAL (aqui você controla)
   },
   header: {
     alignItems: 'center',

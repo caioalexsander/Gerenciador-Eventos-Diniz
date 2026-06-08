@@ -7,8 +7,17 @@ export const formatarDataExibicao = (data: string | null | undefined): string =>
   if (!data) return '—';
 
   try {
-    // Se vier como YYYY-MM-DD ou com T (ISO)
-    const date = new Date(data);
+    let date: Date;
+
+    if (data.includes('T')) {
+      // Já tem hora → usa normal
+      date = new Date(data);
+    } else {
+      // YYYY-MM-DD → força data local (evita shift de timezone)
+      const [ano, mes, dia] = data.split('-').map(Number);
+      date = new Date(ano, mes - 1, dia); // mês é 0-indexado
+    }
+
     if (isNaN(date.getTime())) return data;
 
     return date.toLocaleDateString('pt-BR', {
