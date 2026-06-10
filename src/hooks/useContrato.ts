@@ -49,7 +49,7 @@ export const useContrato = (route: any, navigation: any) => {
 
       setForm({
         nome_contratante: contratoParaEditar.nome_contratante || '',
-        tipo_documento_contratante: contratoParaEditar.tipo_documento_contratante ||'',
+        tipo_documento_contratante: (contratoParaEditar.tipo_documento_contratante as 'cpf' | 'cnpj') || 'cpf',  // ← Adicionar
         cpf_contratante: contratoParaEditar.cpf_contratante?.toString() || '',
         residencia_contratante: contratoParaEditar.residencia_contratante || '',
         data_evento: contratoParaEditar.data_evento || '',

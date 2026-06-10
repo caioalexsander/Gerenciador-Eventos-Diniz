@@ -23,29 +23,13 @@ export default function ContratoFormFields({ form, setForm, tiposEvento }: Props
         placeholder="Nome completo"
       />
 
-      <Text style={styles.label}>Tipo de Documento do Contratante</Text>
-      <Picker
-        selectedValue={form.tipo_documento_contratante || 'cpf'}
-        onValueChange={(value) => setForm((prev: any) => ({ 
-          ...prev, 
-          tipo_documento_contratante: value,
-          // Opcional: limpar campo ao trocar tipo
-          cpf_contratante: '' 
-        }))}
-        style={styles.picker}
-      >
-        <Picker.Item label="CPF" value="cpf" />
-        <Picker.Item label="CNPJ" value="cnpj" />
-      </Picker>
-
-            {/* Tipo de Documento */}
-      <Text style={styles.label}>Tipo de Documento do Contratante</Text>
+      <Text style={styles.label}>Tipo de Documento</Text>
       <Picker
         selectedValue={form.tipo_documento_contratante || 'cpf'}
         onValueChange={(value) => setForm((prev: any) => ({ 
           ...prev, 
           tipo_documento_contratante: value as 'cpf' | 'cnpj',
-          cpf_contratante: '' // limpa ao trocar
+          cpf_contratante: '' 
         }))}
         style={styles.picker}
       >
@@ -60,15 +44,13 @@ export default function ContratoFormFields({ form, setForm, tiposEvento }: Props
         style={styles.input}
         value={form.cpf_contratante}
         onChangeText={(text) => {
-          const formatted = form.tipo_documento_contratante === 'cnpj'
-            ? formatarCNPJ(text)
+          const formatted = form.tipo_documento_contratante === 'cnpj' 
+            ? formatarCNPJ(text) 
             : formatarCPF(text);
           setForm((prev: any) => ({ ...prev, cpf_contratante: formatted }));
         }}
         keyboardType="numeric"
-        placeholder={form.tipo_documento_contratante === 'cnpj' 
-          ? "00.000.000/0000-00" 
-          : "000.000.000-00"}
+        placeholder={form.tipo_documento_contratante === 'cnpj' ? "00.000.000/0000-00" : "000.000.000-00"}
         maxLength={form.tipo_documento_contratante === 'cnpj' ? 18 : 14}
       />
 
