@@ -75,6 +75,7 @@ export class ContratosService {
     try {
       const dadosContrato = {
         nome_contratante: form.nome_contratante.trim(),
+        tipo_documento_contratante: form.tipo_documento_contratante || 'cpf',
         cpf_contratante: form.cpf_contratante,
         residencia_contratante: form.residencia_contratante.trim(),
         data_evento: form.data_evento,
@@ -113,6 +114,7 @@ export class ContratosService {
     try {
       const dadosContrato = {
         nome_contratante: form.nome_contratante.trim(),
+        tipo_documento_contratante: form.tipo_documento_contratante || 'cpf',
         cpf_contratante: form.cpf_contratante,
         residencia_contratante: form.residencia_contratante.trim(),
         data_evento: form.data_evento,

@@ -1,5 +1,6 @@
 export interface FormContrato {
   nome_contratante: string;
+  tipo_documento_contratante: 'cpf' | 'cnpj';
   cpf_contratante: string;
   residencia_contratante: string;
   data_evento: string;

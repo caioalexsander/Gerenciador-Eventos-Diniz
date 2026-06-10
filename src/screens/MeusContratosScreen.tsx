@@ -44,7 +44,7 @@ export default function MeusContratosScreen({ navigation }: any) {
       </View>
             
       <Text style={styles.info}>Local Evento: {item.local_evento}</Text>
-      <Text style={styles.info}>CPF Contratantes: {item.cpf_contratante}</Text>
+      <Text style={styles.info}>{item.tipo_documento_contratante} Contratantes: {item.cpf_contratante}</Text>
       <Text style={styles.info}>Valor Total Do Evento: R$ {item.preco_total}</Text>
       
       <View style={styles.footer}>

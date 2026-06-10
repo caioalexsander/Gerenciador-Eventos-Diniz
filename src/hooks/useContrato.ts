@@ -15,6 +15,7 @@ export const useContrato = (route: any, navigation: any) => {
   
   const [form, setForm] = useState<FormContrato>({
     nome_contratante: '',
+    tipo_documento_contratante: 'cpf',
     cpf_contratante: '',
     residencia_contratante: '',
     data_evento: '',
@@ -48,6 +49,7 @@ export const useContrato = (route: any, navigation: any) => {
 
       setForm({
         nome_contratante: contratoParaEditar.nome_contratante || '',
+        tipo_documento_contratante: contratoParaEditar.tipo_documento_contratante ||'',
         cpf_contratante: contratoParaEditar.cpf_contratante?.toString() || '',
         residencia_contratante: contratoParaEditar.residencia_contratante || '',
         data_evento: contratoParaEditar.data_evento || '',
