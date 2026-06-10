@@ -5,7 +5,8 @@ import NovoContratoHeader from '../../components/contrato/NovoContratoHeader';
 import ContratoFormFields from '../../components/forms/contrato/ContratoFormFields';
 import ClausulaPagamentoSelector from '../../components/forms/contrato/ClausulaPagamentoSelector';
 import CardapioSelector from '../../components/forms/contrato/CardapioSelector';
-
+import { validarCPF } from '../../utils/validacoes/validarCPF';
+import { validarCNPJ } from '../../utils/validacoes/validarCNPJ';
 
 export default function NovoContratoScreen({ navigation, route }: any) {
   const {
@@ -21,10 +22,22 @@ export default function NovoContratoScreen({ navigation, route }: any) {
     salvarContrato,
   } = useContrato(route, navigation);
 
+  const isDocumentoValido = form.tipo_documento_contratante === 'cnpj'
+    ? validarCNPJ(form.cpf_contratante)
+    : validarCPF(form.cpf_contratante);
+
+  // Condição para habilitar o botão Salvar
+  const podeSalvar = 
+    form.nome_contratante?.trim() !== '' &&
+    form.cpf_contratante?.trim() !== '' &&
+    isDocumentoValido &&
+    // Adicione aqui outras validações que já existiam (ex: data, valor, etc)
+    true;   // mantenha true se não houver mais validações
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <NovoContratoHeader isEditing={isEditing} />
-
+      
       <ContratoFormFields 
         form={form} 
         setForm={setForm} 
@@ -45,9 +58,9 @@ export default function NovoContratoScreen({ navigation, route }: any) {
 
       {/* Botão Salvar */}
       <TouchableOpacity 
-        style={styles.button}
+        style={[styles.button, !podeSalvar && styles.buttonDisabled]}
         onPress={salvarContrato}
-        disabled={loading}
+        disabled={!podeSalvar}
       >
         <Text style={styles.buttonText}>
           {loading 
@@ -77,6 +90,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 40,
+  },
+    buttonDisabled: {
+    backgroundColor: '#ccc',
+    opacity: 0.6,
   },
   buttonText: {
     color: '#fff',

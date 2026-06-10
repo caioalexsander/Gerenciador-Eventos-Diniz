@@ -5,6 +5,8 @@ import { formatarData } from '../../../utils/formatadores/data';
 import { formatarHora } from '../../../utils/formatadores/hora';
 import { formatarCPF } from '../../../utils/formatadores/cpf';
 import { formatarCNPJ } from '../../../utils/formatadores/cnpj';
+import { validarCPF } from '../../../utils/validacoes/validarCPF';
+import { validarCNPJ } from '../../../utils/validacoes/validarCNPJ';
 
 interface Props {
   form: any;
@@ -22,7 +24,7 @@ export default function ContratoFormFields({ form, setForm, tiposEvento }: Props
         onChangeText={(text) => setForm((prev: any) => ({ ...prev, nome_contratante: text }))}
         placeholder="Nome completo"
       />
-
+      
       <Text style={styles.label}>Tipo de Documento</Text>
       <Picker
         selectedValue={form.tipo_documento_contratante || 'cpf'}
@@ -53,7 +55,17 @@ export default function ContratoFormFields({ form, setForm, tiposEvento }: Props
         placeholder={form.tipo_documento_contratante === 'cnpj' ? "00.000.000/0000-00" : "000.000.000-00"}
         maxLength={form.tipo_documento_contratante === 'cnpj' ? 18 : 14}
       />
-
+      {form.cpf_contratante && (
+        <Text style={{ 
+          color: (form.tipo_documento_contratante === 'cpf' 
+            ? validarCPF(form.cpf_contratante) 
+            : validarCNPJ(form.cpf_contratante)) ? 'green' : 'red' 
+        }}>
+          {form.tipo_documento_contratante === 'cpf' 
+            ? (validarCPF(form.cpf_contratante) ? '✅ CPF válido' : '❌ CPF inválido')
+            : (validarCNPJ(form.cpf_contratante) ? '✅ CNPJ válido' : '❌ CNPJ inválido')}
+        </Text>
+      )}
       <Text style={styles.label}>Residência / Endereço</Text>
       <TextInput
         style={styles.input}
