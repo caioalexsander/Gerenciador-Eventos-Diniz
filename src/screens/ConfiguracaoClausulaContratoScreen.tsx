@@ -29,7 +29,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
 
   const [titulo, setTitulo] = useState('');
   const [textoCompleto, setTextoCompleto] = useState('');
-  const [tipoDeClausula, setTipoDeClausula] = useState<'C_P' | 'C_T'>('C_P'); 
+  const [tipoDeClausula, setTipoDeClausula] = useState<'C_P' | 'C_T' | 'C_C'>('C_P'); 
   const [textHeight, setTextHeight] = useState(160); // Altura inicial
 
   const carregarModelos = async () => {
@@ -99,7 +99,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
     setEditingItem(item);
     setTitulo(item.titulo);
     setTextoCompleto(item.texto_completo);
-    setTipoDeClausula(item.tipo_de_clausula as 'C_P' | 'C_T');
+    setTipoDeClausula(item.tipo_de_clausula as 'C_P' | 'C_T' | 'C_C');
     setTextHeight(160); // Reset altura ao editar
     setModalVisible(true);
   };
@@ -194,10 +194,11 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
               <View style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, marginBottom: 12 }}>
                 <Picker
                   selectedValue={tipoDeClausula}
-                  onValueChange={(itemValue: 'C_P' | 'C_T') => setTipoDeClausula(itemValue)}
+                  onValueChange={(itemValue: 'C_P' | 'C_T' | 'C_C') => setTipoDeClausula(itemValue)}
                 >
                   <Picker.Item label="C_P - Cláusula de Pagamento" value="C_P" />
                   <Picker.Item label="C_T - Tipo de Evento" value="C_T" />
+                  <Picker.Item label="C_C - Categoria cardapio" value="C_C" />
                 </Picker>
               </View>
 

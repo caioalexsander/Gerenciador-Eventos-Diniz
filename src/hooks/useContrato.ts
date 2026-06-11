@@ -9,6 +9,7 @@ import CardapioSelector from '../components/forms/contrato/CardapioSelector';
 import {StorageService} from '../services/storage.service';
 import { limparCPF } from '../utils/formatadores/cpf';
 import { limparCNPJ } from '../utils/formatadores/cnpj';
+import { ItemCardapio } from '../types/cardapio.types';
 
 export const useContrato = (route: any, navigation: any) => {
   const [isEditing, setIsEditing] = useState(false);

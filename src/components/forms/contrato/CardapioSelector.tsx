@@ -48,11 +48,6 @@ export default function CardapioSelector({ itensCardapio, cardapioSelecionado, t
                 <Text style={[styles.itemText, selected && styles.itemTextSelected]}>
                   {item.nome}
                 </Text>
-                {item.preco && (
-                  <Text style={[styles.preco, selected && styles.precoSelected]}>
-                    R$ {parseFloat(item.preco as string).toFixed(2)}
-                  </Text>
-                )}
               </View>
             </TouchableOpacity>
           );

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, TextInput, Button } from 'react-native';
 import { supabase } from '../services/supabase';
+import { Picker } from '@react-native-picker/picker';
+import { useCategoriasCardapio } from '../hooks/useCategoriasCardapio';
 
 export default function CardapioScreen() {
   const [itens, setItens] = useState<any[]>([]);
@@ -9,6 +11,7 @@ export default function CardapioScreen() {
   
   const [novoItem, setNovoItem] = useState({ nome: '', descricao: '', preco: '',categoria: ''  });
   const [editandoId, setEditandoId] = useState<string | null>(null);
+  const { categorias, loading: loadingCategorias } = useCategoriasCardapio();
 
   const carregarCardapio = async () => {
     setLoading(true);
@@ -127,12 +130,19 @@ export default function CardapioScreen() {
             keyboardType="numeric"
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Categoria"
-            value={novoItem.categoria}
-            onChangeText={(t) => setNovoItem({...novoItem, categoria: t})}
-          />
+          <Text style={styles.label}>Categoria</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={novoItem.categoria}
+              onValueChange={(value) => setNovoItem({...novoItem, categoria: value})}
+              style={styles.picker}
+            >
+              <Picker.Item label="Selecione uma categoria" value="" />
+              {categorias.map(cat => (
+                <Picker.Item key={cat.id} label={cat.titulo} value={cat.titulo} />
+              ))}
+            </Picker>
+          </View>
 
           <View style={styles.formButtons}>
             <Button title="Cancelar" onPress={() => setMostrarForm(false)} color="#666" />
@@ -178,6 +188,15 @@ const styles = StyleSheet.create({
   formTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   input: { borderWidth: 1, borderColor: '#ccc', padding: 12, marginBottom: 10, borderRadius: 8 },
   formButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  label: { fontSize: 16, fontWeight: '600', marginTop: 8, marginBottom: 4 },
+  pickerContainer: { 
+    borderWidth: 1, 
+    borderColor: '#ccc', 
+    borderRadius: 8, 
+    marginBottom: 12,
+    backgroundColor: '#fff'
+  },
+  picker: { height: 50 },
   itemCard: { 
     backgroundColor: '#fff', 
     padding: 15, 
