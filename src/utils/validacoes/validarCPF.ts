@@ -17,3 +17,7 @@ export const validarCPF = (cpf: string): boolean => {
   if (rev === 10 || rev === 11) rev = 0;
   return rev === parseInt(cleaned.charAt(10));
 };
+
+export const limparCPF = (value: string): string => {
+  return value.replace(/\D/g, '');
+};

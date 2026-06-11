@@ -7,7 +7,7 @@ export default function CardapioScreen() {
   const [loading, setLoading] = useState(false);
   const [mostrarForm, setMostrarForm] = useState(false);
   
-  const [novoItem, setNovoItem] = useState({ nome: '', descricao: '', preco: '' });
+  const [novoItem, setNovoItem] = useState({ nome: '', descricao: '', preco: '',categoria: ''  });
   const [editandoId, setEditandoId] = useState<string | null>(null);
 
   const carregarCardapio = async () => {
@@ -52,7 +52,7 @@ export default function CardapioScreen() {
       Alert.alert('Erro ao salvar', error.message);
     } else {
       Alert.alert('Sucesso!', editandoId ? 'Item atualizado' : 'Item adicionado com sucesso!');
-      setNovoItem({ nome: '', descricao: '', preco: '' });
+      setNovoItem({ nome: '', descricao: '', preco: '',categoria: ''  });
       setEditandoId(null);
       setMostrarForm(false);
       carregarCardapio();
@@ -65,7 +65,8 @@ export default function CardapioScreen() {
     setNovoItem({
       nome: item.nome,
       descricao: item.descricao || '',
-      preco: item.preco ? item.preco.toString() : ''
+      preco: item.preco ? item.preco.toString() : '',
+      categoria: item.categoria ,
     });
     setEditandoId(item.id);
     setMostrarForm(true);
@@ -93,7 +94,7 @@ export default function CardapioScreen() {
       <TouchableOpacity 
         style={styles.btnAdicionar} 
         onPress={() => {
-          setNovoItem({ nome: '', descricao: '', preco: '' });
+          setNovoItem({ nome: '', descricao: '', preco: '',categoria: '' });
           setEditandoId(null);
           setMostrarForm(true);
         }}
@@ -126,6 +127,13 @@ export default function CardapioScreen() {
             keyboardType="numeric"
           />
 
+          <TextInput
+            style={styles.input}
+            placeholder="Categoria"
+            value={novoItem.categoria}
+            onChangeText={(t) => setNovoItem({...novoItem, categoria: t})}
+          />
+
           <View style={styles.formButtons}>
             <Button title="Cancelar" onPress={() => setMostrarForm(false)} color="#666" />
             <Button title={editandoId ? "Atualizar" : "Adicionar"} onPress={salvarItem} />
@@ -147,6 +155,7 @@ export default function CardapioScreen() {
               <View style={styles.itemInfo}>
                 <Text style={styles.itemNome}>{item.nome}</Text>
                 {item.descricao && <Text style={styles.itemDesc}>{item.descricao}</Text>}
+                {item.categoria && <Text style={styles.itemcat}>{item.categoria}</Text>}
                 {item.preco && <Text style={styles.itemPreco}>R$ {item.preco}</Text>}
               </View>
               <TouchableOpacity onPress={() => deletarItem(item.id, item.nome)}>
@@ -181,6 +190,7 @@ const styles = StyleSheet.create({
   itemInfo: { flex: 1 },
   itemNome: { fontSize: 18, fontWeight: 'bold' },
   itemDesc: { color: '#666', marginTop: 4 },
+  itemcat: {fontSize: 18, fontWeight: 'bold',color: '#d6970f' },
   itemPreco: { color: '#28A745', fontWeight: 'bold', marginTop: 4 },
   vazio: { textAlign: 'center', marginTop: 50, fontSize: 16, color: '#666' }
 });

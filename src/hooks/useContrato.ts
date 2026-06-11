@@ -7,6 +7,8 @@ import ContratosService from '../services/contratos.service';
 import { compartilharPDF } from '../components/pdf/compartilharPDF';
 import CardapioSelector from '../components/forms/contrato/CardapioSelector';
 import {StorageService} from '../services/storage.service';
+import { limparCPF } from '../utils/formatadores/cpf';
+import { limparCNPJ } from '../utils/formatadores/cnpj';
 
 export const useContrato = (route: any, navigation: any) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -46,6 +48,9 @@ export const useContrato = (route: any, navigation: any) => {
     if (contratoParaEditar) {
       setIsEditing(true);
       setContratoId(contratoParaEditar.id);
+      const documentoLimpo = form.tipo_documento_contratante === 'cnpj'
+      ? limparCNPJ(form.cpf_contratante)
+      : limparCPF(form.cpf_contratante);
 
       setForm({
         nome_contratante: contratoParaEditar.nome_contratante || '',

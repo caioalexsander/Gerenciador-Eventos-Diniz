@@ -28,3 +28,7 @@ export const validarCNPJ = (cnpj: string): boolean => {
   result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
   return result === parseInt(digits.charAt(1));
 };
+
+export const limparCNPJ = (value: string): string => {
+  return value.replace(/\D/g, '');
+};
