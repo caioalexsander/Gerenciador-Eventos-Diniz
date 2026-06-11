@@ -1,3 +1,5 @@
+import { ItemCardapio } from './cardapio.types';
+
 export interface FormContrato {
   nome_contratante: string;
   tipo_documento_contratante: 'cpf' | 'cnpj';
@@ -15,7 +17,7 @@ export interface FormContrato {
   clausula_pagamento: string;
   clausula_texto: string;
   assinatura: string;
-  cardapio_selecionado: string[];
+  cardapio_selecionado: ItemCardapio[];
   observacoes: string;
 }
 

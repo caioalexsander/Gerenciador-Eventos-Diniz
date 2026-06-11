@@ -39,7 +39,7 @@ export const useContrato = (route: any, navigation: any) => {
   const [tiposEvento, setTiposEvento] = useState<string[]>([]);
   const [clausulasBase, setClausulasBase] = useState<Record<string, string>>({});
   const [itensCardapio, setItensCardapio] = useState<any[]>([]);
-  const [cardapioSelecionado, setCardapioSelecionado] = useState<string[]>([]);
+  const [cardapioSelecionado, setCardapioSelecionado] = useState<ItemCardapio[]>([]);
 
   // ==================== CARREGAR PARA EDIÇÃO ====================
   useEffect(() => {
@@ -75,9 +75,11 @@ export const useContrato = (route: any, navigation: any) => {
         observacoes: contratoParaEditar.observacoes || '',
       });
 
-      setCardapioSelecionado(Array.isArray(contratoParaEditar.cardapio_selecionado) 
-        ? contratoParaEditar.cardapio_selecionado 
-        : []);
+      setCardapioSelecionado(
+        Array.isArray(contratoParaEditar.cardapio_selecionado) 
+          ? contratoParaEditar.cardapio_selecionado 
+          : []
+      );
     }
   }, [route.params]);
 
@@ -125,9 +127,11 @@ export const useContrato = (route: any, navigation: any) => {
     carregarCardapio();
   }, []);
 
-  const toggleItem = (nome: string) => {
+  const toggleItem = (item: ItemCardapio) => {
     setCardapioSelecionado(prev =>
-      prev.includes(nome) ? prev.filter(item => item !== nome) : [...prev, nome]
+      prev.some(i => i.id === item.id)
+        ? prev.filter(i => i.id !== item.id)
+        : [...prev, item]
     );
   };
 
