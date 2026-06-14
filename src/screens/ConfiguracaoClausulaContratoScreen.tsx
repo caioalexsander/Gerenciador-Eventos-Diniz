@@ -52,9 +52,6 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
     carregarModelos();
   }, []);
 
-  // ==================== SUBSTITUA APENAS ESSAS PARTES ====================
-
-// 1. Dentro do salvarClausula (substitua a função inteira):
   const salvarClausula = async () => {
     if (!titulo.trim() || !textoCompleto.trim()) {
       Alert.alert('Atenção', 'Título e texto são obrigatórios!');

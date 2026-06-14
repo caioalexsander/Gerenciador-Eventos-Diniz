@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   itemInfo: { flex: 1 },
   itemNome: { fontSize: 18, fontWeight: 'bold' },
   itemDesc: { color: '#666', marginTop: 4 },
-  itemcat: {fontSize: 18, fontWeight: 'bold',color: '#d6970f' },
+  itemcat: {fontSize: 18, fontWeight: 'bold',color: '#d6970f',marginTop: 4 },
   itemPreco: { color: '#28A745', fontWeight: 'bold', marginTop: 4 },
   vazio: { textAlign: 'center', marginTop: 50, fontSize: 16, color: '#666' }
 });

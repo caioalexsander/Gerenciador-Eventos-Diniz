@@ -22,18 +22,25 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-	  "package": "gerenciador.eventos.diniz.app"
+      "package": "gerenciador.eventos.diniz.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font"
     ],
     "extra": {
       "eas": {
         "projectId": "55bc40a7-7249-444f-adfb-87f960935e8d"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/55bc40a7-7249-444f-adfb-87f960935e8d"
     }
   }
 }
