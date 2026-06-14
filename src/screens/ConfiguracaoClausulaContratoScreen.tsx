@@ -19,6 +19,7 @@ interface ModeloContrato {
   titulo: string;
   texto_completo: string;
   tipo_de_clausula: string;
+  prioridade: string;
 }
 
 const ConfiguracaoClausulaContratoScreen: React.FC = () => {
@@ -30,6 +31,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
   const [titulo, setTitulo] = useState('');
   const [textoCompleto, setTextoCompleto] = useState('');
   const [tipoDeClausula, setTipoDeClausula] = useState<'C_P' | 'C_T' | 'C_C'>('C_P'); 
+  const [prioridade, setPrioridade] = useState('');
   const [textHeight, setTextHeight] = useState(160); // Altura inicial
 
   const carregarModelos = async () => {
@@ -64,7 +66,8 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
         .update({ 
           titulo, 
           texto_completo: textoCompleto,
-          tipo_de_clausula: tipoDeClausula   // ← ADICIONADO
+          tipo_de_clausula: tipoDeClausula,
+          prioridade
         })
         .eq('id', editingItem.id);
 
@@ -76,7 +79,8 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
         .insert([{ 
           titulo, 
           texto_completo: textoCompleto,
-          tipo_de_clausula: tipoDeClausula    // ← ADICIONADO
+          tipo_de_clausula: tipoDeClausula,
+          prioridade
         }]);
 
       if (error) Alert.alert('Erro', 'Não foi possível criar.');
@@ -87,7 +91,8 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
     setEditingItem(null);
     setTitulo('');
     setTextoCompleto('');
-    setTipoDeClausula('C_P');        // ← ADICIONADO
+    setTipoDeClausula('C_P');
+    setPrioridade('');     
     setTextHeight(160);
     carregarModelos();
   };
@@ -97,6 +102,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
     setTitulo(item.titulo);
     setTextoCompleto(item.texto_completo);
     setTipoDeClausula(item.tipo_de_clausula as 'C_P' | 'C_T' | 'C_C');
+    setPrioridade(item.prioridade);
     setTextHeight(160); // Reset altura ao editar
     setModalVisible(true);
   };
@@ -127,6 +133,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
             setTitulo('');
             setTextoCompleto('');
             setTipoDeClausula('C_P');
+            setPrioridade ('');
             setTextHeight(160);
             setModalVisible(true);
           }}
@@ -199,6 +206,14 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
                 </Picker>
               </View>
 
+              <Text style={styles.label}>Prioridade</Text>
+              <TextInput
+                style={styles.input}
+                value={prioridade}
+                onChangeText={setPrioridade}
+                placeholder="orden categoria cardapio"
+              />
+
               <Text style={styles.label}>Texto Completo</Text>
               <TextInput
                 style={[styles.input, styles.textArea, { height: textHeight }]}
@@ -221,6 +236,7 @@ const ConfiguracaoClausulaContratoScreen: React.FC = () => {
                     setTitulo('');
                     setTextoCompleto('');
                     setTipoDeClausula('C_P');
+                    setPrioridade('');
                     setTextHeight(160);
                   }}
                 >
