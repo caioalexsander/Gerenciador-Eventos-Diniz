@@ -10,37 +10,41 @@ import {StorageService} from '../services/storage.service';
 import { limparCPF } from '../utils/formatadores/cpf';
 import { limparCNPJ } from '../utils/formatadores/cnpj';
 import { ItemCardapio } from '../types/cardapio.types';
+import { DraftContrato } from '../utils/contrato/draftContrato';
 
 export const useContrato = (route: any, navigation: any) => {
   const [isEditing, setIsEditing] = useState(false);
   const [contratoId, setContratoId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftData, setDraftData] = useState<any>(null);
   
-  const [form, setForm] = useState<FormContrato>({
-    nome_contratante: '',
-    tipo_documento_contratante: 'cpf',
-    cpf_contratante: '',
-    residencia_contratante: '',
-    data_evento: '',
-    hora_inicio: '',
-    hora_fim: '',
-    duracao: '',
-    local_evento: '',
-    tipo_evento: '',
-    num_convidados: '',
-    preco_por_convidado: '',
-    preco_total: '',
-    clausula_pagamento: '',
-    clausula_texto: '',
-    assinatura: 'Digital',
-    cardapio_selecionado: [],
-    observacoes: '',
-  });
+  const formInicial: FormContrato = {
+  nome_contratante: '',
+  tipo_documento_contratante: 'cpf',
+  cpf_contratante: '',
+  residencia_contratante: '',
+  data_evento: '',
+  hora_inicio: '',
+  hora_fim: '',
+  duracao: '',
+  local_evento: '',
+  tipo_evento: '',
+  num_convidados: '',
+  preco_por_convidado: '',
+  preco_total: '',
+  clausula_pagamento: '',
+  clausula_texto: '',
+  assinatura: 'Digital',
+  cardapio_selecionado: [],
+  observacoes: '',
+  };
 
   const [tiposEvento, setTiposEvento] = useState<string[]>([]);
   const [clausulasBase, setClausulasBase] = useState<Record<string, string>>({});
   const [itensCardapio, setItensCardapio] = useState<any[]>([]);
   const [cardapioSelecionado, setCardapioSelecionado] = useState<ItemCardapio[]>([]);
+  const [form, setForm] = useState<FormContrato>(formInicial);
 
   // ==================== CARREGAR PARA EDIÇÃO ====================
   useEffect(() => {
@@ -83,7 +87,7 @@ export const useContrato = (route: any, navigation: any) => {
       );
     }
   }, [route.params]);
-
+  
   // ==================== CARREGAR CLÁUSULAS E TIPOS (só uma vez) ====================
   useEffect(() => {
     const carregarDadosBase = async () => {
@@ -127,6 +131,47 @@ export const useContrato = (route: any, navigation: any) => {
     };
     carregarCardapio();
   }, []);
+
+  // ==================== CARREGAR DRAFT AO INICIAR ====================
+  useEffect(() => {
+    const carregarDraft = async () => {
+      // Se estiver editando um contrato existente, não usa draft
+      if (route.params?.contratoParaEditar) return;
+
+      const draft = await DraftContrato.carregarDraft();
+      if (draft) {
+        setDraftData(draft);
+        setShowDraftModal(true);
+      }
+    };
+
+    carregarDraft();
+  }, [route.params]);
+
+  useEffect(() => {
+    if (!isEditing && Object.values(form).some(v => v !== '' || (Array.isArray(v) && v.length > 0))) {
+      DraftContrato.salvarDraft(form, cardapioSelecionado);
+    }
+  }, [form, cardapioSelecionado, isEditing]);
+
+  // Função para continuar com draft
+  const continuarComDraft = () => {
+    if (draftData) {
+      setForm(draftData.form);
+      setCardapioSelecionado(draftData.cardapioSelecionado || []);
+    }
+    setShowDraftModal(false);
+    setDraftData(null);
+  };
+  
+  // Função para começar do zero
+  const iniciarDoZero = async () => {
+    await DraftContrato.limparDraft();
+    setForm(form);
+    setCardapioSelecionado([]);
+    setShowDraftModal(false);
+    setDraftData(null);
+  };
 
   const toggleItem = (item: ItemCardapio) => {
     setCardapioSelecionado(prev =>
@@ -220,6 +265,9 @@ export const useContrato = (route: any, navigation: any) => {
   };
 
   return {
+    showDraftModal,
+    continuarComDraft,
+    iniciarDoZero,
     form,
     setForm,
     isEditing,

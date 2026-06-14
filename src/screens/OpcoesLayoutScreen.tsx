@@ -12,14 +12,49 @@ export default function OpcoesLayoutScreen({ route, navigation }: any) {
   const params = route.params || {};
   const { pdfUrl, contrato } = params;
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Carregando...');
 
-  const handleVisualizarPDF = () => {
+  /*const handleVisualizarPDF = () => {
     if (pdfUrl) abrirPDF(pdfUrl);
     else Alert.alert('Aviso', 'URL do PDF não disponível.');
+  };*/
+
+  const handleVisualizarPDF = async () => {
+    if (!pdfUrl) {
+      Alert.alert('Aviso', 'URL do PDF não disponível.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setLoadingMessage('Abrindo PDF...');
+      await abrirPDF(pdfUrl);
+
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível abrir o PDF.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCompartilhar = () => {
+  /*const handleCompartilhar = () => {
     if (pdfUrl) compartilharPDF(pdfUrl);
+  };*/
+
+  const handleCompartilhar = async () => {
+    if (!pdfUrl) return;
+
+    try {  
+      setLoading(true);
+      setLoadingMessage('Preparando compartilhamento...');
+
+      await compartilharPDF(pdfUrl);
+
+    } catch (error) {
+      Alert.alert('Erro', 'Falha ao compartilhar PDF.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAssinaturaManual = async () => {
@@ -175,8 +210,13 @@ export default function OpcoesLayoutScreen({ route, navigation }: any) {
             <Text style={styles.cardText}>Voltar</Text>
           </TouchableOpacity>
         </View>
+        <Loading
+          visible={loading}
+          message={loadingMessage}
+        />
       </ScrollView>
     </ImageBackground>
+    
   );
 }
 
