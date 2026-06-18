@@ -97,14 +97,6 @@ export default function NovoContratoScreen({ navigation, route }: any) {
         </View>
       </Modal>
 
-      <Loading
-        visible={loading}
-        message={
-          isEditing
-            ? "Atualizando contrato..."
-            : "Gerando contrato..."
-        }
-      />
     </ScrollView>
     <Loading
       visible={loading}

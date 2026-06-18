@@ -29,7 +29,7 @@ export const useContrato = (route: any, navigation: any) => {
   hora_fim: '',
   duracao: '',
   local_evento: '',
-  tipo_evento: '',
+  tipo_evento: 'Aniversário',
   num_convidados: '',
   preco_por_convidado: '',
   preco_total: '',
@@ -38,6 +38,9 @@ export const useContrato = (route: any, navigation: any) => {
   assinatura: 'Digital',
   cardapio_selecionado: [],
   observacoes: '',
+  quantidade_garcom: '',
+  preco_excedente_convidado: '',
+
   };
 
   const [tiposEvento, setTiposEvento] = useState<string[]>([]);
@@ -78,6 +81,8 @@ export const useContrato = (route: any, navigation: any) => {
           ? contratoParaEditar.cardapio_selecionado 
           : [],
         observacoes: contratoParaEditar.observacoes || '',
+        quantidade_garcom: contratoParaEditar.quantidade_garcom || '',
+        preco_excedente_convidado: contratoParaEditar.preco_excedente_convidado || '',
       });
 
       setCardapioSelecionado(

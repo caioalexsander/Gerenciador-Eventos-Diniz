@@ -163,6 +163,24 @@ export default function ContratoFormFields({ form, setForm, tiposEvento }: Props
         placeholder="Valor por pessoa"
       />
 
+      <Text style={styles.label}>Preço excedente por Convidado (R$)</Text>
+      <TextInput
+        style={styles.input}
+        value={form.preco_excedente_convidado}
+        onChangeText={(text) => setForm((prev: any) => ({ ...prev, preco_excedente_convidado: text }))}
+        keyboardType="numeric"
+        placeholder="Valor excedente por pessoa"
+      />
+
+      <Text style={styles.label}>Quantidade garçom </Text>
+      <TextInput
+        style={styles.input}
+        value={form.quantidade_garcom}
+        onChangeText={(text) => setForm((prev: any) => ({ ...prev, quantidade_garcom: text }))}
+        keyboardType="numeric"
+        placeholder="Quantidade garçom"
+      />
+
       <Text style={styles.label}>Preço Total (R$)</Text>
       <TextInput
         style={styles.input}

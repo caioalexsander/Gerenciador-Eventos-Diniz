@@ -19,6 +19,8 @@ export interface FormContrato {
   assinatura: string;
   cardapio_selecionado: ItemCardapio[];
   observacoes: string;
+  quantidade_garcom: string;
+  preco_excedente_convidado: string;
 }
 
 export interface ContratoParaEditar extends FormContrato {
