@@ -93,6 +93,9 @@ export class ContratosService {
         cardapio_selecionado: form.cardapio_selecionado || [],   // ← Usa o que vem do form
         observacoes: form.observacoes?.trim() || '',
         status: 'pendente',
+        quantidade_garcom: form.quantidade_garcom,
+        preco_excedente_convidado: parseFloat(String(form.preco_excedente_convidado).replace(',', '.')) || 0,
+        idade_maxima_criança: form.idade_maxima_criança,
       };
 
       const { data, error } = await supabase
