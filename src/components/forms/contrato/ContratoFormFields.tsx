@@ -181,6 +181,15 @@ export default function ContratoFormFields({ form, setForm, tiposEvento }: Props
         placeholder="Quantidade garçom"
       />
 
+      <Text style={styles.label}>Idade Maxima Criança isenta </Text>
+      <TextInput
+        style={styles.input}
+        value={form.idade_maxima_criança}
+        onChangeText={(text) => setForm((prev: any) => ({ ...prev, idade_maxima_criança: text }))}
+        keyboardType="numeric"
+        placeholder="Idade Maxima Criança isenta"
+      />
+
       <Text style={styles.label}>Preço Total (R$)</Text>
       <TextInput
         style={styles.input}

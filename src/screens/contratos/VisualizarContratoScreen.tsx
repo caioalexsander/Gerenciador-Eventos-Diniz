@@ -57,6 +57,9 @@ export default function VisualizarContratoScreen() {
         <InfoRow label="Nº Convidados" value={contrato.num_convidados?.toString() || '—'} />
         <InfoRow label="Preço Por Convidados" value={formatarMoeda(Number(contrato.preco_por_convidado) || 0)} />
         <InfoRow label="Preço Total" value={formatarMoeda(Number(contrato.preco_total) || 0)} />
+        <InfoRow label="Preço Por Convidados excedente" value={formatarMoeda(Number(contrato.preco_excedente_convidado) || 0)} />
+        <InfoRow label="Quantidade De Garçom" value={contrato.quantidade_garcom?.toString() || '—'} />
+        <InfoRow label="Idade Max De Criança Isenta" value={contrato.idade_maxima_criança?.toString() || '—'} />
 
         {/* CARDÁPIO SELECIONADO */}
         <View style={styles.cardapioSection}>

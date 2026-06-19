@@ -21,6 +21,7 @@ export interface FormContrato {
   observacoes: string;
   quantidade_garcom: string;
   preco_excedente_convidado: string;
+  idade_maxima_criança: string;
 }
 
 export interface ContratoParaEditar extends FormContrato {

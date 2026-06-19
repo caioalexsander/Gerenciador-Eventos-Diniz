@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   formTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   input: { borderWidth: 1, borderColor: '#ccc', padding: 12, marginBottom: 10, borderRadius: 8 },
   formButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  label: { fontSize: 16, fontWeight: '600', marginTop: 8, marginBottom: 4 },
+  label: { fontSize: 16, fontWeight: '600', marginTop: 8, marginBottom: 10 },
   pickerContainer: { 
     borderWidth: 1, 
     borderColor: '#ccc', 

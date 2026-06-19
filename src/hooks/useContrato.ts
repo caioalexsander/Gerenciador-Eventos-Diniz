@@ -40,6 +40,7 @@ export const useContrato = (route: any, navigation: any) => {
   observacoes: '',
   quantidade_garcom: '',
   preco_excedente_convidado: '',
+  idade_maxima_criança: '',
 
   };
 
@@ -83,6 +84,7 @@ export const useContrato = (route: any, navigation: any) => {
         observacoes: contratoParaEditar.observacoes || '',
         quantidade_garcom: contratoParaEditar.quantidade_garcom || '',
         preco_excedente_convidado: contratoParaEditar.preco_excedente_convidado || '',
+        idade_maxima_criança: contratoParaEditar.idade_maxima_criança || '',
       });
 
       setCardapioSelecionado(
